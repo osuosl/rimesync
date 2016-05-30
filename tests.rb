@@ -1,5 +1,5 @@
 require "test/unit"
-require "http"    # not working
+require "http"
 require_relative "rimesync"
 
 class Resp

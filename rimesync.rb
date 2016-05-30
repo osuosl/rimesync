@@ -20,7 +20,7 @@
 # Supported TimeSync versions:
 # v1
 
-class Rimesync # :nodoc:
+class TimeSync # :nodoc:
   def initialize(baseurl, token = None, test = False)
     @baseurl = baseurl # passing val. of local var. to instance var.
     @user = None

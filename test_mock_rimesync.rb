@@ -511,4 +511,74 @@ class TestMockRimeSync < Test::Unit::TestCase
 
       assert_equal(ts.get_activities(), expected_result)
   end
+
+  def test_mock_get_users_with_username
+      expected_result = Array[
+      	Hash[
+          'username': 'example-user',
+          'display_name': 'X. Ample User',
+          'email': 'example@example.com',
+          'active': true,
+          'site_admin': false,
+          'site_manager': false,
+          'site_spectator': false,
+          'created_at': '2015-02-29',
+          'deleted_at': nil
+  	    ]
+  	  ]
+
+      assert_equal(ts.get_users('example-user'), expected_result)
+  end
+
+  def test_mock_get_users_no_username
+      expected_result = Array[
+          Hash[
+              'username': 'userone',
+              'display_name': 'One Is The Loneliest Number',
+              'email': 'exampleone@example.com',
+              'active': true,
+              'site_admin': false,
+              'site_manager': false,
+              'site_spectator': false,
+              'created_at': '2015-02-29',
+              'deleted_at': nil
+          ],
+          Hash[
+              'username': 'usertwo',
+              'display_name': 'Two Can Be As Bad As One',
+              'email': 'exampletwo@example.com',
+              'active': true,
+              'site_admin': false,
+              'site_manager': false,
+              'site_spectator': false,
+              'created_at': '2015-02-29',
+              'deleted_at': nil
+          ],
+          Hash[
+              'username': 'userthree',
+              'display_name': 'Yes It''s The Saddest Experience',
+              'email': 'examplethree@example.com',
+              'active': true,
+              'site_admin': false,
+              'site_manager': false,
+              'site_spectator': false,
+              'created_at': '2015-02-29',
+              'deleted_at': nil
+          ],
+          Hash[
+              'username': 'userfour',
+              'display_name': 'You''ll Ever Do',
+              'email': 'examplefour@example.com',
+              'active': true,
+              'site_admin': false,
+              'site_manager': false,
+              'site_spectator': false,
+              'created_at': '2015-02-29',
+              'deleted_at': nil
+          ]
+      ]
+
+      assert_equal(ts.get_users(), expected_result)
+  end
+
 end

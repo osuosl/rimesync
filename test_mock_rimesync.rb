@@ -234,4 +234,49 @@ class TestMockRimeSync < Test::Unit::TestCase
       assert_equal(ts.update_activity(parameter_dict, "ciw"),
                         expected_result)
   end
+
+  def test_mock_create_user
+      parameter_dict = Hash[
+          'username': 'example',
+          'password': 'password',
+          'display_name': 'X. Ample User',
+          'email': 'example@example.com'
+      ]
+
+      expected_result = Hash[
+          'username' => 'example',
+          'display_name' => 'X. Ample User',
+          'email' => 'example@example.com',
+          'active' => true,
+          'site_admin' => false,
+          'site_manager' => false,
+          'site_spectator' => false,
+          'created_at' => '2015-05-23',
+          'deleted_at' => nil
+      ]
+
+      assert_equal(ts.create_user(parameter_dict), expected_result)
+
+  def test_mock_update_user
+      parameter_dict = Hash[
+          'username' => 'red-leader',
+          'email' => 'red-leader@yavin.com',
+          'site_spectator' => true
+      ]
+
+      expected_result = Hash[
+          'username' => 'red-leader',
+          'display_name' => 'Mr. Example',
+          'email' => 'red-leader@yavin.com',
+          'active' => true,
+          'site_admin' => false,
+          'site_manager' => false,
+          'site_spectator' => true,
+          'created_at' => '2015-02-29',
+          'deleted_at' => nil
+      ]
+
+      self.assertEquals(self.ts.update_user(parameter_dict, "example"),
+                        expected_result)
+
 end

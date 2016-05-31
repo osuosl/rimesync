@@ -284,7 +284,7 @@ class TestRimeSync < Test::Unit::TestCase
     # Tests TimeSync._TimeSync__create_or_update for create project with incorrect parameter types
 
       # Parameters to be sent to TimeSync
-      param_list = [1, "hello", [1, 2, 3], nil, true, false, 1.234]
+      param_list = Array[1, "hello", [1, 2, 3], nil, true, false, 1.234]
 
       for param in param_list
           assert_equal(ts._TimeSync__create_or_update(param,nil,
@@ -996,22 +996,6 @@ def test_get_projects_include_deleted_with_slug
                           "time object: invalid duration string"}])
     end
 
-  def test_duration_invalid
-    # Tests for duration validity - if the duration given is a negative int, an error message is returned
-      time = Hash[
-          'duration'=> -12600,
-          'project'=> 'ganeti-web-manager',
-          'user'=> 'example-user',
-          'activities'=> ['documenting'],
-          'notes'=> 'Worked on docs',
-          'issue_uri'=> "https://github.com/",
-          'date_worked'=> '2014-04-17',
-      ]
-
-      assert_equal(ts.create_time(time),
-                        [{ts.error =>
-                          "time object: duration cannot be negative"}])
-    end
 
   # def test_project_users_valid
   #   # Test project_users method with a valid project object returned from TimeSync

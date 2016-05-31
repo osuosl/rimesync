@@ -53,7 +53,7 @@ class TestMockRimeSync < Test::Unit::TestCase
       assert_equal(ts.create_time(parameter_dict), expected_result)
    end
 
-  def test_mock_update_time(self):
+  def test_mock_update_time
        parameter_dict = {
            'duration' => 19,
            'user' => 'red-leader',
@@ -165,8 +165,8 @@ class TestMockRimeSync < Test::Unit::TestCase
 
   def test_mock_update_project
       parameter_dict = Hash[
-          "uri": "https://code.osuosl.org/projects/timesync",
-          "name": "pymesync",
+          'uri' => "https://code.osuosl.org/projects/timesync",
+          'name' => 'pymesync'
       ]
 
       expected_result = Hash[
@@ -237,10 +237,10 @@ class TestMockRimeSync < Test::Unit::TestCase
 
   def test_mock_create_user
       parameter_dict = Hash[
-          'username': 'example',
-          'password': 'password',
-          'display_name': 'X. Ample User',
-          'email': 'example@example.com'
+          'username' => 'example',
+          'password' => 'password',
+          'display_name' => 'X. Ample User',
+          'email' => 'example@example.com'
       ]
 
       expected_result = Hash[
@@ -299,7 +299,7 @@ class TestMockRimeSync < Test::Unit::TestCase
         ]
       ]
 
-      assert_equal(ts.get_times({"uuid": "example-uuid"}),
+      assert_equal(ts.get_times({"uuid" => "example-uuid"}),
                         expected_result)
   end
 
@@ -515,15 +515,15 @@ class TestMockRimeSync < Test::Unit::TestCase
   def test_mock_get_users_with_username
       expected_result = Array[
       	Hash[
-          'username': 'example-user',
-          'display_name': 'X. Ample User',
-          'email': 'example@example.com',
-          'active': true,
-          'site_admin': false,
-          'site_manager': false,
-          'site_spectator': false,
-          'created_at': '2015-02-29',
-          'deleted_at': nil
+          'username' => 'example-user',
+          'display_name' => 'X. Ample User',
+          'email' => 'example@example.com',
+          'active' => true,
+          'site_admin' => false,
+          'site_manager' => false,
+          'site_spectator' => false,
+          'created_at' => '2015-02-29',
+          'deleted_at' => nil
   	    ]
   	  ]
 
@@ -533,48 +533,48 @@ class TestMockRimeSync < Test::Unit::TestCase
   def test_mock_get_users_no_username
       expected_result = Array[
           Hash[
-              'username': 'userone',
-              'display_name': 'One Is The Loneliest Number',
-              'email': 'exampleone@example.com',
-              'active': true,
-              'site_admin': false,
-              'site_manager': false,
-              'site_spectator': false,
-              'created_at': '2015-02-29',
-              'deleted_at': nil
+              'username' => 'userone',
+              'display_name' => 'One Is The Loneliest Number',
+              'email' => 'exampleone@example.com',
+              'active' => true,
+              'site_admin' => false,
+              'site_manager' => false,
+              'site_spectator' => false,
+              'created_at' => '2015-02-29',
+              'deleted_at' => nil
           ],
           Hash[
-              'username': 'usertwo',
-              'display_name': 'Two Can Be As Bad As One',
-              'email': 'exampletwo@example.com',
-              'active': true,
-              'site_admin': false,
-              'site_manager': false,
-              'site_spectator': false,
-              'created_at': '2015-02-29',
-              'deleted_at': nil
+              'username' => 'usertwo',
+              'display_name' => 'Two Can Be As Bad As One',
+              'email' => 'exampletwo@example.com',
+              'active' => true,
+              'site_admin' => false,
+              'site_manager' => false,
+              'site_spectator' => false,
+              'created_at' => '2015-02-29',
+              'deleted_at' => nil
           ],
           Hash[
-              'username': 'userthree',
-              'display_name': 'Yes It''s The Saddest Experience',
-              'email': 'examplethree@example.com',
-              'active': true,
-              'site_admin': false,
-              'site_manager': false,
-              'site_spectator': false,
-              'created_at': '2015-02-29',
-              'deleted_at': nil
+              'username' => 'userthree',
+              'display_name' => 'Yes It''s The Saddest Experience',
+              'email' => 'examplethree@example.com',
+              'active' => true,
+              'site_admin' => false,
+              'site_manager' => false,
+              'site_spectator' => false,
+              'created_at' => '2015-02-29',
+              'deleted_at' => nil
           ],
           Hash[
-              'username': 'userfour',
-              'display_name': 'You''ll Ever Do',
-              'email': 'examplefour@example.com',
-              'active': true,
-              'site_admin': false,
-              'site_manager': false,
-              'site_spectator': false,
-              'created_at': '2015-02-29',
-              'deleted_at': nil
+              'username' => 'userfour',
+              'display_name' => 'You''ll Ever Do',
+              'email' => 'examplefour@example.com',
+              'active' => true,
+              'site_admin' => false,
+              'site_manager' => false,
+              'site_spectator' => false,
+              'created_at' => '2015-02-29',
+              'deleted_at' => nil
           ]
       ]
 
@@ -590,22 +590,22 @@ class TestMockRimeSync < Test::Unit::TestCase
 
   def test_mock_project_users
       expected_result = Hash[
-          u'malcolm' => Array[u'member', u'manager'],
-          u'jayne' =>   Array[u'member'],
-          u'kaylee' =>  Array[u'member'],
-          u'zoe' =>     Array[u'member'],
-          u'hoban' =>   Array[u'member'],
-          u'simon' =>   Array[u'spectator'],
-          u'river' =>   Array[u'spectator'],
-          u'derrial' => Array[u'spectator'],
-          u'inara' =>   Array[u'spectator']
+          :malcolm => Array[:member, :manager],   # not sure about this
+          :jayne =>   Array[:member],
+          :kaylee =>  Array[:member],
+          :zoe =>     Array[:member],
+          :hoban =>   Array[:member],
+          :simon =>   Array[:spectator],
+          :river =>   Array[:spectator],
+          :derrial => Array[:spectator],
+          :inara =>   Array[:spectator]
       ]
 
       assert_equal(ts.project_users(project="ff"), expected_result)
   end
 
   def test_mock_project_users_no_slug
-      expected_result = Hash{ts.error => 'Missing project slug, please include in method call'}
+      expected_result = Hash[ts.error => 'Missing project slug, please include in method call']
       assert_equal(ts.project_users(), expected_result)
   end
 

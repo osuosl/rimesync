@@ -581,4 +581,32 @@ class TestMockRimeSync < Test::Unit::TestCase
       assert_equal(ts.get_users(), expected_result)
   end
 
+  def test_mock_delete_object
+      assert_equal(ts.delete_time('junk'), [{'status' => 200}])
+      assert_equal(ts.delete_project('junk'), [{'status' => 200}])
+      assert_equal(ts.delete_activity('junk'), [{'status' => 200}])
+      assert_equal(ts.delete_user('junk'), [{'status' => 200}])
+  end
+
+  def test_mock_project_users
+      expected_result = Hash[
+          u'malcolm' => Array[u'member', u'manager'],
+          u'jayne' =>   Array[u'member'],
+          u'kaylee' =>  Array[u'member'],
+          u'zoe' =>     Array[u'member'],
+          u'hoban' =>   Array[u'member'],
+          u'simon' =>   Array[u'spectator'],
+          u'river' =>   Array[u'spectator'],
+          u'derrial' => Array[u'spectator'],
+          u'inara' =>   Array[u'spectator']
+      ]
+
+      assert_equal(ts.project_users(project="ff"), expected_result)
+  end
+
+  def test_mock_project_users_no_slug
+      expected_result = Hash{ts.error => 'Missing project slug, please include in method call'}
+      assert_equal(ts.project_users(), expected_result)
+  end
+
 end

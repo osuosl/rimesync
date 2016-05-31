@@ -352,4 +352,112 @@ class TestMockRimeSync < Test::Unit::TestCase
       assert_equal(ts.get_times(), expected_result)
   end
 
+  def test_mock_get_projects_with_slug
+        expected_result = Array[
+        	Hash[
+            'uri' => "https://code.osuosl.org/projects/ganeti-webmgr",
+            'name' => 'Ganeti Web Manager',
+            'slugs' => ['ganeti'],
+            'uuid' => 'a034806c-00db-4fe1-8de8-514575f31bfb',
+            'revision' => 4,
+            'created_at' => '2014-07-17',
+            'deleted_at' => nil,
+            'updated_at' => '2014-07-20',
+            'users' => Hash[
+                'members' => Array[
+                    'patcht',
+                    'tschuy'
+                ],
+                'spectators' => Array[
+                    'tschuy'
+                ],
+                'managers' => Array[
+                    'tschuy'
+                ]
+            ]
+            ]
+        ]
+
+        assert_equal(ts.get_projects({"slug" => "ganeti"}),expected_result)
+  end
+
+    def test_mock_get_projects_no_slug
+        expected_result = Array[
+            Hash[
+                'uri' => "https://code.osuosl.org/projects/ganeti-webmgr",
+                'name' => 'Ganeti Web Manager',
+                'slugs' => ['gwm'],
+                'uuid' => 'a034806c-00db-4fe1-8de8-514575f31bfb',
+                'revision' => 4,
+                'created_at' => '2014-07-17',
+                'deleted_at' => nil,
+                'updated_at' => '2014-07-20',
+                'users' => Hash[
+                    'members' => Array[
+                        'patcht',
+                        'tschuy'
+                    ],
+                    'spectators' => Array[
+                        'tschuy'
+                    ],
+                    'managers' => Array[
+                        'tschuy'
+                    ]
+                ]
+            ],
+            Hash[
+                'uri' => "https://code.osuosl.org/projects/timesync",
+                'name' => 'TimeSync',
+                'slugs' => ['timesync', 'ts'],
+                'uuid' => 'a034806c-rrrr-bbbb-8de8-514575f31bfb',
+                'revision' => 2,
+                'created_at' => '2014-07-17',
+                'deleted_at' => nil,
+                'updated_at' => '2014-07-20',
+                'users' => Hash[
+                    'members' => Array[
+                        'patcht',
+                        'tschuy',
+                        'mrsj'
+                    ],
+                    'spectators' => Array[
+                        'tschuy',
+                        'mrsj'
+                    ],
+                    'managers' => Array[
+                        'tschuy'
+                    ]
+                ]
+            ],
+            Hash[
+                'uri' => "https://code.osuosl.org/projects/pymesync",
+                'name' => 'pymesync',
+                'slugs' => ['pymesync', 'ps'],
+                'uuid' => 'a034806c-ssss-cccc-8de8-514575f31bfb',
+                'revision' => 1,
+                'created_at' => '2014-07-17',
+                'deleted_at' => nil,
+                'updated_at' => '2014-07-20',
+                'users' => Hash[
+                    'members' => Array[
+                        'patcht',
+                        'tschuy',
+                        'mrsj',
+                        'MaraJade',
+                        'thai'
+                    ],
+                    'spectators' => Array[
+                        'tschuy',
+                        'mrsj'
+                    ],
+                    'managers' => Array[
+                        'mrsj'
+                    ]
+                ]
+            ]
+        ]
+
+        assert_equal(ts.get_projects(), expected_result)
+
+  end
 end

@@ -256,6 +256,7 @@ class TestMockRimeSync < Test::Unit::TestCase
       ]
 
       assert_equal(ts.create_user(parameter_dict), expected_result)
+  end
 
   def test_mock_update_user
       parameter_dict = Hash[
@@ -278,5 +279,77 @@ class TestMockRimeSync < Test::Unit::TestCase
 
       self.assertEquals(self.ts.update_user(parameter_dict, "example"),
                         expected_result)
+  end
+
+  def test_mock_get_times_with_uuid
+      expected_result = Array[
+      	Hash[
+          'duration' => 12,
+          'user' => 'userone',
+          'project' => Array['ganeti-webmgr', 'gwm'],
+          'activities' => Array['docs', 'planning'],
+          'notes' => 'Worked on documentation.',
+          'issue_uri' => "https://github.com/osuosl/ganeti_webmgr",
+          'date_worked' => '2014-04-17',
+          'revision' => 1,
+          'created_at' => '2014-04-17',
+          'updated_at' => nil,
+          'deleted_at' => nil,
+          'uuid' => 'example-uuid'
+        ]
+      ]
+
+      assert_equal(ts.get_times({"uuid": "example-uuid"}),
+                        expected_result)
+  end
+
+  def test_mock_get_times_no_uuid
+      expected_result = Array[
+          Hash[
+              'duration' => 12,
+              'user' => 'userone',
+              'project' => Array['ganeti-webmgr', 'gwm'],
+              'activities' => Array['docs', 'planning'],
+              'notes' => 'Worked on documentation.',
+              'issue_uri' => "https://github.com/osuosl/ganeti_webmgr",
+              'date_worked' => '2014-04-17',
+              'revision' => 1,
+              'created_at' => '2014-04-17',
+              'updated_at' => nil,
+              'deleted_at' => nil,
+              'uuid' => 'c3706e79-1c9a-4765-8d7f-89b4544cad56'
+          ],
+          Hash[
+              'duration' => 13,
+              'user' => 'usertwo',
+              'project' => Array['ganeti-webmgr', 'gwm'],
+              'activities' => Array['code', 'planning'],
+              'notes' => 'Worked on coding',
+              'issue_uri' => "https://github.com/osuosl/ganeti_webmgr",
+              'date_worked' => '2014-04-17',
+              'revision' => 1,
+              'created_at' => '2014-04-17',
+              'updated_at' => nil,
+              'deleted_at' => nil,
+              'uuid' => '12345676-1c9a-rrrr-bbbb-89b4544cad56'
+          ],
+          Hash[
+              'duration' => 14,
+              'user' => 'userthree',
+              'project' => Array['timesync', 'ts'],
+              'activities' => Array['code'],
+              'notes' => 'Worked on coding',
+              'issue_uri' => "https://github.com/osuosl/timesync",
+              'date_worked' => '2014-04-17',
+              'revision' => 1,
+              'created_at' => '2014-04-17',
+              'updated_at' => nil,
+              'deleted_at' => nil,
+              'uuid' => '12345676-1c9a-ssss-cccc-89b4544cad56'
+          ]
+      ]
+
+      assert_equal(ts.get_times(), expected_result)
+  end
 
 end

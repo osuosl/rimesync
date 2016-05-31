@@ -45,8 +45,8 @@ class TestMockRimeSync < Test::Unit::TestCase
           'issue_uri' => "https://github.com/osuosl/ganeti_webmgr/issues",
           'date_worked' => '2014-04-17',
           'created_at' => '2015-05-23',
-          'updated_at' => None,
-          'deleted_at' => None,
+          'updated_at' => nil,
+          'deleted_at' => nil,
           'uuid' => '838853e3-3635-4076-a26f-7efr4e60981f',
           'revision' => 1
       ]
@@ -64,12 +64,12 @@ class TestMockRimeSync < Test::Unit::TestCase
            'user' => 'red-leader',
            'activities' => Array['hello', 'world'],
            'project' => Array['ganeti'],
-           'notes' => None,
+           'notes' => nil,
            'issue_uri' => "https://github.com/osuosl/ganeti_webmgr/issues/56",
            'date_worked' => '2015-08-07',
            'created_at' => '2014-06-12',
            'updated_at' => '2015-10-18',
-           'deleted_at' => None,
+           'deleted_at' => nil,
            'uuid' => 'fake-uuid',
            'revision' => 2
        }
@@ -98,8 +98,8 @@ class TestMockRimeSync < Test::Unit::TestCase
           'issue_uri' => "https://github.com/osuosl/ganeti_webmgr/issues",
           'date_worked' => '2014-04-17',
           'created_at' => '2015-05-23',
-          'updated_at' => None,
-          'deleted_at' => None,
+          'updated_at' => nil,
+          'deleted_at' => nil,
           'uuid' => '838853e3-3635-4076-a26f-7efr4e60981f',
           'revision' => 1
       ]
@@ -119,12 +119,12 @@ class TestMockRimeSync < Test::Unit::TestCase
           'user' => 'red-leader',
           'activities' => ['hello', 'world'],
           'project' => ['ganeti'],
-          'notes' => None,
+          'notes' => nil,
           'issue_uri' => "https://github.com/osuosl/ganeti_webmgr/issues/56",
           'date_worked' => '2015-08-07',
           'created_at' => '2014-06-12',
           'updated_at' => '2015-10-18',
-          'deleted_at' => None,
+          'deleted_at' => nil,
           'uuid' => 'fake-uuid',
           'revision' => 2
       ]
@@ -140,8 +140,8 @@ class TestMockRimeSync < Test::Unit::TestCase
           'name' => 'TimeSync API',
           'slugs' => ['timesync', 'time'],
           'users' => {
-              'mrsj' => {'member' => True, 'spectator' => True, 'manager' => True},
-              'thai' => {'member' => True, 'spectator' => False, 'manager' => False}
+              'mrsj' => {'member' => true, 'spectator' => true, 'manager' => true},
+              'thai' => {'member' => true, 'spectator' => false, 'manager' => false}
           }
       ]
 
@@ -151,12 +151,12 @@ class TestMockRimeSync < Test::Unit::TestCase
           'slugs' => ['timesync', 'time'],
           'uuid' => '309eae69-21dc-4538-9fdc-e6892a9c4dd4',
           'created_at' => '2015-05-23',
-          'updated_at' => None,
-          'deleted_at' => None,
+          'updated_at' => nil,
+          'deleted_at' => nil,
           'revision' => 1,
           'users' => Hash[
-              'mrsj' => Hash['member' => True, 'spectator' => True, 'manager' => True],
-              'thai' => Hash['member' => True, 'spectator' => False, 'manager' => False]
+              'mrsj' => Hash['member' => true, 'spectator' => true, 'manager' => true],
+              'thai' => Hash['member' => true, 'spectator' => false, 'manager' => false]
           ]
       ]
 
@@ -175,7 +175,7 @@ class TestMockRimeSync < Test::Unit::TestCase
           'slugs' => ['ps'],
           'created_at' => '2014-04-16',
           'updated_at' => '2014-04-18',
-          'deleted_at' => None,
+          'deleted_at' => nil,
           'uuid' => '309eae69-21dc-4538-9fdc-e6892a9c4dd4',
           'revision' => 2,
           'users' => Hash[
@@ -197,4 +197,41 @@ class TestMockRimeSync < Test::Unit::TestCase
 
   end
 
+  def test_mock_create_activity
+      parameter_dict = Hash[
+          'name' => 'Quality Assurance/Testing',
+          'slug' => 'qa'
+      ]
+
+      expected_result = Hash[
+          'name' => 'Quality Assurance/Testing',
+          'slug' => 'qa',
+          'uuid' => 'cfa07a4f-d446-4078-8d73-2f77560c35c0',
+          'created_at' => '2013-07-27',
+          'updated_at' => nil,
+          'deleted_at' => nil,
+          'revision' => 1
+      ]
+
+      assert_equal(ts.create_activity(parameter_dict),
+                        expected_result)
+
+  end
+
+  def test_mock_update_activity
+      parameter_dict = Hash['name' => 'Code in the wild']
+
+      expected_result = Hash[
+          'name' => 'Code in the wild',
+          'slug' => 'ciw',
+          'uuid' => '3cf78d25-411c-4d1f-80c8-a09e5e12cae3',
+          'created_at' => '2014-04-16',
+          'updated_at' => '2014-04-17',
+          'deleted_at' => nil,
+          'revision' => 2
+      ]
+
+      assert_equal(ts.update_activity(parameter_dict, "ciw"),
+                        expected_result)
+  end
 end

@@ -134,4 +134,67 @@ class TestMockRimeSync < Test::Unit::TestCase
 
   end
 
+  def test_mock_create_project
+      parameter_dict = Hash[
+          'uri' => "https://code.osuosl.org/projects/timesync",
+          'name' => 'TimeSync API',
+          'slugs' => ['timesync', 'time'],
+          'users' => {
+              'mrsj' => {'member' => True, 'spectator' => True, 'manager' => True},
+              'thai' => {'member' => True, 'spectator' => False, 'manager' => False}
+          }
+      ]
+
+      expected_result = Hash[
+          'uri' => "https://code.osuosl.org/projects/timesync",
+          'name' => 'TimeSync API',
+          'slugs' => ['timesync', 'time'],
+          'uuid' => '309eae69-21dc-4538-9fdc-e6892a9c4dd4',
+          'created_at' => '2015-05-23',
+          'updated_at' => None,
+          'deleted_at' => None,
+          'revision' => 1,
+          'users' => Hash[
+              'mrsj' => Hash['member' => True, 'spectator' => True, 'manager' => True],
+              'thai' => Hash['member' => True, 'spectator' => False, 'manager' => False]
+          ]
+      ]
+
+      assert_equal(ts.create_project(parameter_dict), expected_result)
+  end
+
+  def test_mock_update_project
+      parameter_dict = Hash[
+          "uri": "https://code.osuosl.org/projects/timesync",
+          "name": "pymesync",
+      ]
+
+      expected_result = Hash[
+          'uri' => "https://code.osuosl.org/projects/timesync",
+          'name' => 'pymesync',
+          'slugs' => ['ps'],
+          'created_at' => '2014-04-16',
+          'updated_at' => '2014-04-18',
+          'deleted_at' => None,
+          'uuid' => '309eae69-21dc-4538-9fdc-e6892a9c4dd4',
+          'revision' => 2,
+          'users' => Hash[
+              'members' => Array[
+                  'patcht',
+                  'tschuy'
+              ],
+              'spectators' => Array[
+                  'tschuy'
+              ],
+              'managers' => Array[
+                  'tschuy'
+              ]
+          ]
+      ]
+
+      assert_equal(ts.update_project(parameter_dict, "ps"),
+                        expected_result)
+
+  end
+
 end

@@ -460,4 +460,55 @@ class TestMockRimeSync < Test::Unit::TestCase
         assert_equal(ts.get_projects(), expected_result)
 
   end
+
+  def test_mock_get_activities_with_slug
+      expected_result = Array[
+      	Hash[
+          'name' => 'Documentation',
+          'slug' => 'docudocs',
+          'uuid' => 'adf036f5-3d49-4a84-bef9-062b46380bbf',
+          'revision' => 5,
+          'created_at' => '2014-04-17',
+          'deleted_at' => nil,
+          'updated_at' => nil
+        ]
+      ]
+
+      assert_equal(ts.get_activities({'slug' => 'docudocs'}),
+                        expected_result)
+  end
+
+  def test_mock_get_activities_no_slug
+      expected_result = Array[
+          Hash[
+              'name' => 'Documentation',
+              'slug' => 'docs',
+              'uuid' => 'adf036f5-3d49-4a84-bef9-062b46380bbf',
+              'revision' => 5,
+              'created_at' => '2014-04-17',
+              'deleted_at' => nil,
+              'updated_at' => nil
+          ],
+          Hash[
+              'name' => 'Coding',
+              'slug' => 'dev',
+              'uuid' => 'adf036f5-3d49-bbbb-rrrr-062b46380bbf',
+              'revision' => 1,
+              'created_at' => '2014-04-17',
+              'deleted_at' => nil,
+              'updated_at' => nil
+          ],
+          Hash[
+              'name' => 'Planning',
+              'slug' => 'plan',
+              'uuid' => 'adf036f5-3d49-cccc-ssss-062b46380bbf',
+              'revision' => 1,
+              'created_at' => '2014-04-17',
+              'deleted_at' => nil,
+              'updated_at' => nil
+          ]
+      ]
+
+      assert_equal(ts.get_activities(), expected_result)
+  end
 end

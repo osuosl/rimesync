@@ -1,15 +1,16 @@
 require_relative 'rimesync'
 require 'test/unit'
+# require 'test/unit/ui/console/testrunner'
 
 class TestMockRimeSync < Test::Unit::TestCase
   def setup
     baseurl = 'http://ts.example.com/v1'
-    @ts = rimesync.TimeSync(baseurl, test = true)
+    @ts = TimeSync.new(baseurl, test = true)  # not working
     @ts.authenticate('testuser', 'testpassword', 'password')
   end
 
   def teardown
-    del(@ts)
+    remove_instance_variable(:@ts)
   end
 
   def test_mock_authenticate
@@ -603,3 +604,6 @@ end
     assert_equal(ts.project_users, expected_result)
   end
 end
+
+
+# Test::Unit::UI::Console::TestRunner.run(TC_MyTest)

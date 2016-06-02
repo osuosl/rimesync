@@ -279,6 +279,7 @@ def get_projects(slug)
                 ]
             ]
         )
+    end
     return p_list
 end
 
@@ -320,6 +321,7 @@ def get_activities(slug)
                 'updated_at' => nil
             ]
         )
+    end
     return p_list
 end
 
@@ -387,28 +389,29 @@ def get_users(username)
                 'deleted_at' => nil
             ]
         ]
+    end
     return p_dict
 end
 
 
-def delete_object()
+def delete_object
     # Delete an object from TimeSync
-    return Array[Hash['status' => 200]
+    return Array[Hash['status' => 200]]
 end
 
 
-def project_users()
+def project_users
     # Return list of users and permissions from TimeSync
     users = Hash[
-        u'malcolm' => [u'member', u'manager'],
-        u'jayne' =>   [u'member'],
-        u'kaylee' =>  [u'member'],
-        u'zoe' =>     [u'member'],
-        u'hoban' =>   [u'member'],
-        u'simon' =>   [u'spectator'],
-        u'river' =>   [u'spectator'],
-        u'derrial' => [u'spectator'],
-        u'inara' =>   [u'spectator']
+        'malcolm' => ['member', 'manager'],
+        'jayne' =>   ['member'],
+        'kaylee' =>  ['member'],
+        'zoe' =>     ['member'],
+        'hoban' =>   ['member'],
+        'simon' =>   ['spectator'],
+        'river' =>   ['spectator'],
+        'derrial' => ['spectator'],
+        'inara' =>   ['spectator']
     ]
 
     return users

@@ -22,6 +22,11 @@
 
 require 'json'
 require_relative 'mock_rimesync'
+require 'bcrypt'
+
+module Boolean; end   # workaround for making `''.is_a? Boolean` work
+class TrueClass; include Boolean; end
+class FalseClass; include Boolean; end
 
 class TimeSync # :nodoc:
   def initialize(baseurl, token = nil, test = False)
@@ -235,6 +240,62 @@ class TimeSync # :nodoc:
       return __create_or_update(activity, slug,
                                      "activity", "activities",
                                      False)
+  end
+  def create_user(user)
+      # create_user(user)
+
+      # Post a user to TimeSync via a POST request in a JSON body. This
+      # method will return that body in the form of a list containing a single
+      # python dictionary. The dictionary will contain a representation of that
+      # JSON body if it was successful or error information if it was not.
+
+      # ``user`` is a python dictionary containing the user information to send
+      # to TimeSync.
+      for perm in ["site_admin", "site_manager", "site_spectator", "active"]
+          if user.has_key?(perm) and !(user[perm].is_a? Boolean)
+              return Hash[error => "user object: {} must be True or False".format(perm)]
+          end
+      end
+
+      # Only hash password if it is present
+      # Don't error out here so that internal methods can catch all missing
+      # fields later on and return a more meaningful error if necessary.
+      if user.has_key?("password")
+          # Hash the password
+          password = user["password"]
+          hashed = BCrypt::Password.create(password)
+          user["password"] = hashed
+      end
+      return __create_or_update(user, None, "user", "users")
+  end
+  def update_user(user, username)
+      # update_user(user, username)
+
+      # Send a user update to TimeSync via a POST request in a JSON body.
+      # This method will return that body in the form of a list containing a
+      # single python dictionary. The dictionary will contain a representation
+      # of that updated user object if it was successful or error
+      # information if it was not.
+
+      # ``user`` is a python dictionary containing the user information to send
+      # to TimeSync.
+      # ``username`` contains the username for a user to update.
+      for perm in ["site_admin", "site_manager", "site_spectator", "active"]
+          if user.has_key?(perm) and !(user[perm].is_a? Boolean)
+              return Hash[error => "user object: {} must be True or False".format(perm)]
+          end
+      end
+
+      # Only hash password if it is present
+      # Don't error out here so that internal methods can catch all missing
+      # fields later on and return a more meaningful error if necessary.
+      if user.has_key?("password")
+          # Hash the password
+          password = user["password"]
+          hashed = BCrypt::Password.create(password)
+          user["password"] = hashed
+      end
+      return __create_or_update(user, username, "user", "users", False)
   end
 end
 

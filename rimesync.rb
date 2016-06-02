@@ -1,4 +1,4 @@
-# rimesync - Ruby Port of Pymesync
+# rimesync - Ruby Port of rimesync
 
 # Allows for interactions with the TimeSync API
 
@@ -152,7 +152,7 @@ class TimeSync # :nodoc:
               return duration
           end
       end
-      return __create_or_update(time, None, "time", "times")
+      return __create_or_update(time, nil, "time", "times")
   end
   def update_time(time, uuid)
       # update_time(time, uuid)
@@ -194,7 +194,7 @@ class TimeSync # :nodoc:
 
       # ``project`` is a python dictionary containing the project information
       # to send to TimeSync.
-      return __create_or_update(project, None, "project", "projects")
+      return __create_or_update(project, nil, "project", "projects")
   end
   def update_project(project, slug)
       # update_project(project, slug)
@@ -212,7 +212,7 @@ class TimeSync # :nodoc:
                                      False)
   end
   def create_activity(activity)
-      # create_activity(activity, slug=None)
+      # create_activity(activity, slug=nil)
 
       # Post an activity to TimeSync via a POST request in a JSON body. This
       # method will return that body in the form of a list containing a single
@@ -221,7 +221,7 @@ class TimeSync # :nodoc:
 
       # ``activity`` is a python dictionary containing the activity information
       # to send to TimeSync.
-      return __create_or_update(activity, None,
+      return __create_or_update(activity, nil,
                                      "activity", "activities")
   end
 
@@ -266,7 +266,7 @@ class TimeSync # :nodoc:
           hashed = BCrypt::Password.create(password)
           user["password"] = hashed
       end
-      return __create_or_update(user, None, "user", "users")
+      return __create_or_update(user, nil, "user", "users")
   end
   def update_user(user, username)
       # update_user(user, username)
@@ -296,6 +296,262 @@ class TimeSync # :nodoc:
           user["password"] = hashed
       end
       return __create_or_update(user, username, "user", "users", False)
+  end
+  def get_times(query_parameters=nil)
+      # get_times(query_parameters)
+
+      # Request time entries filtered by parameters passed in
+      # ``query_parameters``. Returns a list of python objects representing the
+      # JSON time information returned by TimeSync or an error message if
+      # unsuccessful.
+
+      # ``query_parameters`` is a python dictionary containing the optional
+      # query parameters described in the TimeSync documentation. If
+      # ``query_parameters`` is empty or nil, ``get_times()`` will return all
+      # times in the database. The syntax for each argument is
+      # ``{"query": ["parameter"]}``.
+      # Check that user has authenticated
+      @local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return [Hash[error => local_auth_error]]
+      end
+
+      # Check for key error
+      if @query_parameters
+          for key, value in query_parameters
+              if !(valid_get_queries.include?(key))
+                  return [Hash[error => "invalid query: {}".format(key)]]
+              end
+          end
+      end
+
+      # Initialize the query string
+      query_string = ""
+
+      # If there are filtering parameters, construct them correctly.
+      # Else reinitialize the query string to a ? so we can add the token.
+      if @query_parameters
+          query_string = __construct_filter_query(@query_parameters)
+      elsif
+          query_string = "?"
+      end
+
+      # Construct query url, at this point query_string ends with a ?
+      url = "{0}/times{1}token={2}".format(self.baseurl,
+                                           query_string,
+                                           self.token)
+
+      # Test mode, return one or many objects depending on if uuid is passed
+      if @test
+          if @query_parameters and query_parameters.has_key?("uuid")
+              return mock_rimesync.get_times(query_parameters["uuid"])
+          elsif
+              return mock_rimesync.get_times(nil)  # something wrong here
+          end
+      end
+
+      # Attempt to GET times, then convert the response to a python
+      # dictionary. Always returns a list.
+      begin
+          # Success!
+          response = requests.get(url)
+          res_dict = self.__response_to_python(response)
+
+          # return [res_dict] if type(res_dict) is not list else res_dict
+          return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
+      rescue Exception => e
+          # Request Error
+          return [Hash[error => e]]
+      end
+  end
+  def get_projects(query_parameters=nil)
+      # get_projects(query_parameters)
+
+      # Request project information filtered by parameters passed to
+      # ``query_parameters``. Returns a list of python objects representing the
+      # JSON project information returned by TimeSync or an error message if
+      # unsuccessful.
+
+      # ``query_parameters`` is a python dict containing the optional query
+      # parameters described in the TimeSync documentation. If
+      # ``query_parameters`` is empty or nil, ``get_projects()`` will return
+      # all projects in the database. The syntax for each argument is
+      # ``{"query": "parameter"}`` or ``{"bool_query": <boolean>}``.
+
+      # Optional parameters:
+      # "slug": "<slug>"
+      # "include_deleted": <boolean>
+      # "revisions": <boolean>
+
+      # Does not accept a slug combined with include_deleted, but does accept
+      # any other combination.
+      # Check that user has authenticated
+      @local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return [Hash[error => local_auth_error]]
+      end
+
+      # Save for passing to test mode since __format_endpoints deletes
+      # kwargs["slug"] if it exists
+      if @query_parameters and query_parameters.has_key?("slug")
+          slug = query_parameters["slug"]
+      elsif
+          slug = nil
+      end
+
+      @query_string = ""
+
+      # If kwargs exist, create a correct query string
+      # Else, prepare query_string for the token
+      if @query_parameters
+          query_string = __format_endpoints(query_parameters)
+          # If __format_endpoints returns nil, it was passed both slug and
+          # include_deleted, which is not allowed by the TimeSync API
+          if query_string is nil
+              error_message = "invalid combination: slug and include_deleted"
+              return [Hash[error: error_message]]
+      elsif
+          query_string = "?token={}".format(self.token)
+      end
+
+      # Construct query url - at this point query_string ends with
+      # ?token=self.token
+      url = "{0}/projects{1}".format(baseurl, query_string)
+
+      # Test mode, return list of projects if slug is nil, or a single
+      # project
+      if @test
+          return mock_rimesync.get_projects(slug)
+      end
+
+      # Attempt to GET projects, then convert the response to a python
+      # dictionary. Always returns a list.
+      begin
+          # Success!
+          response = requests.get(url)
+          res_dict = self.__response_to_python(response)
+
+          return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
+      rescue Exception => e
+          # Request Error
+          return [Hash[error: e]]
+      end
+  end
+  def get_activities(query_parameters=None)
+      # get_activities(query_parameters)
+
+      # Request activity information filtered by parameters passed to
+      # ``query_parameters``. Returns a list of python objects representing
+      # the JSON activity information returned by TimeSync or an error message
+      # if unsuccessful.
+
+      # ``query_parameters`` is a dictionary containing the optional query
+      # parameters described in the TimeSync documentation. If
+      # ``query_parameters`` is empty or None, ``get_activities()`` will
+      # return all activities in the database. The syntax for each argument is
+      # ``{"query": "parameter"}`` or ``{"bool_query": <boolean>}``.
+
+      # Optional parameters:
+      # "slug": "<slug>"
+      # "include_deleted": <boolean>
+      # "revisions": <boolean>
+
+      # Does not accept a slug combined with include_deleted, but does accept
+      # any other combination.
+      # Check that user has authenticated
+      @local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return [Hash[error => local_auth_error]]
+      end
+
+      # Save for passing to test mode since __format_endpoints deletes
+      # kwargs["slug"] if it exists
+      if @query_parameters and  query_parameters.has_key?("slug")
+          slug = query_parameters["slug"]
+      elsif
+          slug = None
+      end
+
+      @query_string = ""
+
+      # If kwargs exist, create a correct query string
+      # Else, prepare query_string for the token
+      if @query_parameters
+          query_string = __format_endpoints(query_parameters)
+          # If __format_endpoints returns None, it was passed both slug and
+          # include_deleted, which is not allowed by the TimeSync API
+          if query_string is nil
+              error_message = "invalid combination: slug and include_deleted"
+              return [Hash[error: error_message]]
+      elsif
+          query_string = "?token={}".format(self.token)
+      end
+
+      # Construct query url - at this point query_string ends with
+      # ?token=self.token
+      url = "{0}/activities{1}".format(self.baseurl, query_string)
+
+      # Test mode, return list of projects if slug is None, or a list of
+      # projects
+      if test
+          return mock_rimesync.get_activities(slug)
+      end
+
+      # Attempt to GET activities, then convert the response to a python
+      # dictionary. Always returns a list.
+      begin
+          # Success!
+          response = requests.get(url)
+          res_dict = self.__response_to_python(response)
+
+          return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
+      rescue Exception => e
+          # Request Error
+          return [Hash[error: e]]
+      end
+  def get_users(username=None)
+      # get_users(username=None)
+
+      # Request user entities from the TimeSync instance specified by the
+      # baseurl provided when instantiating the TimeSync object. Returns a list
+      # of python dictionaries containing the user information returned by
+      # TimeSync or an error message if unsuccessful.
+
+      # ``username`` is an optional parameter containing a string of the
+      # specific username to be retrieved. If ``username`` is not provided, a
+      # list containing all users will be returned. Defaults to ``None``.
+      # Check that user has authenticated
+
+      @local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return [Hash[error => local_auth_error]]
+      end
+
+      # url should end with /users if no username is passed else
+      # /users/username
+      url = username ? "{0}/users/{1}".format(self.baseurl, username) : ("{}/users".format(self.baseurl))
+
+      # The url should always end with a token
+      url += "?token={}".format(self.token)
+
+      # Test mode, return one user object if username is passed else return
+      # several user objects
+      if @test
+          return mock_rimesync.get_users(username)
+      end
+
+      # Attempt to GET users, then convert the response to a python
+      # dictionary. Always returns a list.
+      begin
+          # Success!
+          response = requests.get(url)
+          res_dict = self.__response_to_python(response)
+
+                    return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
+      rescue Exception => e
+          # Request Error
+          return [Hash[error => e]]
+      end
   end
 end
 

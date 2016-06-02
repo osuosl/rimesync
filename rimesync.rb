@@ -553,5 +553,87 @@ class TimeSync # :nodoc:
           return [Hash[error => e]]
       end
   end
+  def delete_time(uuid=None)
+      # delete_time(uuid=None)
+
+      # Allows the currently authenticated user to delete their own time entry
+      # by uuid.
+
+      # ``uuid`` is a string containing the uuid of the time entry to be
+      # deleted.
+      # Check that user has authenticated
+      @local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return Hash[error => local_auth_error]
+      end
+
+      if not uuid
+          return Hash[error => "missing uuid; please add to method call"]
+      end
+
+      return __delete_object("times", uuid)
+  end
+
+  def delete_project(slug=None)
+      # delete_project(slug=None)
+
+      # Allows the currently authenticated admin user to delete a project
+      # record by slug.
+
+      # ``slug`` is a string containing the slug of the project to be deleted.
+      # Check that user has authenticated
+      @local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return Hash[error => local_auth_error]
+      end
+
+      if not @slug
+          return Hash[error => "missing slug; please add to method call"]
+      end
+
+      return self.__delete_object("projects", slug)
+  end
+
+  def delete_activity(slug=None)
+      # delete_activity(slug=None)
+
+      # Allows the currently authenticated admin user to delete an activity
+      # record by slug.
+
+      # ``slug`` is a string containing the slug of the activity to be deleted.
+      # Check that user has authenticated
+      local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return Hash[error => local_auth_error]
+      end
+
+      if not @slug
+          return Hash[error: "missing slug; please add to method call"]
+      end
+
+      return __delete_object("activities", slug)
+  end
+
+  def delete_user(username=None)
+      # delete_user(username=None)
+
+      # Allows the currently authenticated admin user to delete a user
+      # record by username.
+
+      # ``username`` is a string containing the username of the user to be
+      # deleted.
+      # Check that user has authenticated
+      @local_auth_error = __local_auth_error()
+      if @local_auth_error
+          return Hash[error => local_auth_error]
+      end
+
+      if not username
+          return Hash[error =>
+                  "missing username; please add to method call"]
+      end
+
+      return self.__delete_object("users", username)
+  end
 end
 

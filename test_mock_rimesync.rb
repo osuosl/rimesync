@@ -11,6 +11,7 @@ class TestMockRimeSync < Test::Unit::TestCase
 
   def teardown
     remove_instance_variable(:@ts)
+    # @ts = nil
   end
 
   def test_mock_authenticate

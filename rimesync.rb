@@ -179,5 +179,62 @@ class TimeSync # :nodoc:
 
       return __create_or_update(time, uuid, "time", "times", False)
   end
+  def create_project(project)
+      # create_project(project)
+
+      # Post a project to TimeSync via a POST request in a JSON body. This
+      # method will return that body in the form of a list containing a single
+      # python dictionary. The dictionary will contain a representation of that
+      # JSON body if it was successful or error information if it was not.
+
+      # ``project`` is a python dictionary containing the project information
+      # to send to TimeSync.
+      return __create_or_update(project, None, "project", "projects")
+  end
+  def update_project(project, slug)
+      # update_project(project, slug)
+
+      # Send a project update to TimeSync via a POST request in a JSON body.
+      # This method will return that body in the form of a list containing a
+      # single python dictionary. The dictionary will contain a representation
+      # of that updated project object if it was successful or error
+      # information if it was not.
+
+      # ``project`` is a python dictionary containing the project information
+      # to send to TimeSync.
+      # ``slug`` contains the slug for a project entry to update.
+      return __create_or_update(project, slug, "project", "projects",
+                                     False)
+  end
+  def create_activity(activity)
+      # create_activity(activity, slug=None)
+
+      # Post an activity to TimeSync via a POST request in a JSON body. This
+      # method will return that body in the form of a list containing a single
+      # python dictionary. The dictionary will contain a representation of that
+      # JSON body if it was successful or error information if it was not.
+
+      # ``activity`` is a python dictionary containing the activity information
+      # to send to TimeSync.
+      return __create_or_update(activity, None,
+                                     "activity", "activities")
+  end
+
+  def update_activity(activity, slug)
+      # update_activity(activity, slug)
+
+      # Send an activity update to TimeSync via a POST request in a JSON body.
+      # This method will return that body in the form of a list containing a
+      # single python dictionary. The dictionary will contain a representation
+      # of that updated activity object if it was successful or error
+      # information if it was not.
+
+      # ``activity`` is a python dictionary containing the project information
+      # to send to TimeSync.
+      # ``slug`` contains the slug for an activity entry to update.
+      return __create_or_update(activity, slug,
+                                     "activity", "activities",
+                                     False)
+  end
 end
 

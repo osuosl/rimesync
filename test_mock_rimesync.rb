@@ -10,8 +10,8 @@ class TestMockRimeSync < Test::Unit::TestCase
   end
 
   def teardown
-    remove_instance_variable(:@ts)
-    # @ts = nil
+    # remove_instance_variable(:@ts)
+    @ts = nil
   end
 
   def test_mock_authenticate
@@ -586,15 +586,15 @@ end
 
   def test_mock_project_users
     expected_result = Hash[
-          malcolm: Array[:member, :manager], # not sure about this
-          jayne: Array[:member],
-          kaylee: Array[:member],
-          zoe: Array[:member],
-          hoban: Array[:member],
-          simon: Array[:spectator],
-          river: Array[:spectator],
-          derrial: Array[:spectator],
-          inara: Array[:spectator]
+          'malcolm': Array['member', 'manager'], # not sure about this
+          'jayne': Array['member'],
+          'kaylee': Array['member'],
+          'zoe': Array['member'],
+          'hoban': Array['member'],
+          'simon': Array['spectator'],
+          'river': Array['spectator'],
+          'derrial': Array['spectator'],
+          'inara': Array['spectator']
       ]
 
     assert_equal(ts.project_users(project = 'ff'), expected_result)

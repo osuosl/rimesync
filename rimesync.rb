@@ -20,10 +20,14 @@
 # Supported TimeSync versions:
 # v1
 
+# import operator
+
 require 'json'
 require_relative 'mock_rimesync'
 require 'bcrypt'
 require 'base64'
+require 'parsr'
+require 'rest-client'
 
 module Boolean; end   # workaround for making `''.is_a? Boolean` work
 class TrueClass; include Boolean; end
@@ -113,8 +117,8 @@ class TimeSync # :nodoc:
       # Send the request, then convert the resonse to a ruby dictionary
       begin
           # Success!
-          response = requests.post(url, json=auth)
-          token_response = self.__response_to_ruby(response)
+          response = RestClient.post url auth.to_json  # not sure about this
+          token_response = __response_to_ruby(response)
       rescue Exception => e
           # Request error
           return Hash[error => e]
@@ -355,8 +359,8 @@ class TimeSync # :nodoc:
       # dictionary. Always returns a list.
       begin
           # Success!
-          response = requests.get(url)
-          res_dict = self.__response_to_ruby(response)
+          response = RestClient.get url
+          res_dict = __response_to_ruby(response)
 
           # return [res_dict] if type(res_dict) is not list else res_dict
           return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
@@ -429,7 +433,7 @@ class TimeSync # :nodoc:
       # dictionary. Always returns a list.
       begin
           # Success!
-          response = requests.get(url)
+          response = RestClient.get url
           res_dict = self.__response_to_ruby(response)
 
           return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
@@ -502,7 +506,7 @@ class TimeSync # :nodoc:
       # dictionary. Always returns a list.
       begin
           # Success!
-          response = requests.get(url)
+          response = RestClient.get url
           res_dict = self.__response_to_ruby(response)
 
           return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
@@ -545,7 +549,7 @@ class TimeSync # :nodoc:
       # dictionary. Always returns a list.
       begin
           # Success!
-          response = requests.get(url)
+          response = RestClient.get url
           res_dict = self.__response_to_ruby(response)
 
                     return  (res_dict.kind_of?(Array) ? res_dict : [res_dict])
@@ -637,7 +641,7 @@ class TimeSync # :nodoc:
       return self.__delete_object("users", username)
   end
 
-  def token_expiration_time
+  def token_expiration_time  # work on this
       # token_expiration_time()
 
       # Returns the expiration time of the JWT (JSON Web Token) associated with
@@ -664,13 +668,13 @@ class TimeSync # :nodoc:
       # literal_eval the string representation of a dict to convert it to a
       # dict, then get the value at 'exp'. The value at 'exp' is epoch time
       # in ms
-      exp_int = ast.literal_eval(decoded_payload)['exp']
+      exp_int = Parsr.literal_eval(decoded_payload)['exp']  # not sure about this
 
       # Convert the epoch time from ms to s
       exp_int /= 1000
 
       # Convert and format the epoch time to ruby datetime.
-      exp_datetime = datetime.datetime.fromtimestamp(exp_int)
+      exp_datetime = Time.at(exp_int)
 
       return exp_datetime
   end
@@ -701,7 +705,7 @@ class TimeSync # :nodoc:
       # Try to get the project object
       begin
           # Success!
-          response = requests.get(url)
+          response = RestClient.get url
           project_object = __response_to_ruby(response)
       rescue Exception => e
           # Request Error
@@ -925,7 +929,7 @@ class TimeSync # :nodoc:
 
       # Test mode, remove leading '/' from identifier
       if test
-          return __test_handler(object_fields, identifier[1:],
+          return __test_handler(object_fields, identifier.drop(1),
                                      object_name, create_object)
       end
 
@@ -933,7 +937,7 @@ class TimeSync # :nodoc:
       # dictionary
       begin
           # Success!
-          response = requests.post(url, json=values)
+          response = RestClient.post url value.to_json
           return self.__response_to_ruby(response)
       rescue Exception => e
           # Request error
@@ -977,7 +981,7 @@ class TimeSync # :nodoc:
       # Attempt to DELETE object
       begin
           # Success!
-          response = requests.delete(url)
+          response = RestClient.delete url
           return __response_to_ruby(response)
       except Exception e
           # Request error

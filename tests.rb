@@ -1,7 +1,15 @@
+# import mock
+# from mock import patch
+
+
 require 'test/unit'
 require 'http'
 require_relative 'rimesync'
 require 'json'
+require 'bcrypt'
+require 'base64'
+require 'parsr'
+require 'rest-client'
 
 class Resp
   def initialize
@@ -1925,8 +1933,8 @@ def test_get_projects_include_deleted_with_slug
                      "4N30=.QP2FbiY3I6e2eN436hpdjoBFbW9NdrRUHbkJ+wr9GK9mMW"
                      "7/oC/oKnutCwwzMCwjzEx6hlxnGo6/LiGyPBcm3w==")
 
-    decoded_payload = base64.b64decode(self.ts.token.split(".")[1])
-    exp_int = ast.literal_eval(decoded_payload)['exp'] / 1000
+    decoded_payload = Base64.decode64(self.ts.token.split(".")[1])
+    exp_int = Parsr.literal_eval(decoded_payload)['exp'] / 1000
     exp_datetime = datetime.datetime.fromtimestamp(exp_int)
 
     assert_equal(ts.token_expiration_time(),

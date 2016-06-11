@@ -134,6 +134,7 @@ class TimeSync # :nodoc:
           return token_response
       end
   end
+
   def create_time(time)
       # create_time
 
@@ -159,6 +160,7 @@ class TimeSync # :nodoc:
       end
       return create_or_update(time, nil, "time", "times")
   end
+
   def update_time(time, uuid)
       # update_time(time, uuid)
 
@@ -189,6 +191,7 @@ class TimeSync # :nodoc:
 
       return create_or_update(time, uuid, "time", "times", false)
   end
+
   def create_project(project)
       # create_project(project)
 
@@ -201,6 +204,7 @@ class TimeSync # :nodoc:
       # to send to TimeSync.
       return create_or_update(project, nil, "project", "projects")
   end
+
   def update_project(project, slug)
       # update_project(project, slug)
 
@@ -216,6 +220,7 @@ class TimeSync # :nodoc:
       return create_or_update(project, slug, "project", "projects",
                                      false)
   end
+
   def create_activity(activity)
       # create_activity(activity, slug=nil)
 
@@ -246,6 +251,7 @@ class TimeSync # :nodoc:
                                      "activity", "activities",
                                      false)
   end
+
   def create_user(user)
       # create_user(user)
 
@@ -257,7 +263,7 @@ class TimeSync # :nodoc:
       # ``user`` is a ruby dictionary containing the user information to send
       # to TimeSync.
       for perm in ["site_admin", "site_manager", "site_spectator", "active"]
-          if user.has_key?(perm) and !(user[perm].is_a? Boolean)
+          if user.has_key?(perm) && !(user[perm].is_a? Boolean)
               return Hash[error => "user object: {} must be True or False".format(perm)]
           end
       end
@@ -273,6 +279,7 @@ class TimeSync # :nodoc:
       end
       return create_or_update(user, nil, "user", "users")
   end
+
   def update_user(user, username)
       # update_user(user, username)
 
@@ -286,7 +293,7 @@ class TimeSync # :nodoc:
       # to TimeSync.
       # ``username`` contains the username for a user to update.
       for perm in ["site_admin", "site_manager", "site_spectator", "active"]
-          if user.has_key?(perm) and !(user[perm].is_a? Boolean)
+          if user.has_key?(perm) && !(user[perm].is_a? Boolean)
               return Hash[error => "user object: {} must be True or False".format(perm)]
           end
       end
@@ -302,6 +309,7 @@ class TimeSync # :nodoc:
       end
       return create_or_update(user, username, "user", "users", false)
   end
+
   def get_times(query_parameters=nil)
       # get_times(query_parameters)
 
@@ -348,10 +356,10 @@ class TimeSync # :nodoc:
 
       # Test mode, return one or many objects depending on if uuid is passed
       if @test
-          if @query_parameters and query_parameters.has_key?("uuid")
+          if @query_parameters && query_parameters.has_key?("uuid")
               return mock_rimesync.get_times(query_parameters["uuid"])
           elsif
-              return mock_rimesync.get_times(nil)  # something wrong here
+              return mock_rimesync.get_times(nil)  # error
           end
       end
 
@@ -369,6 +377,7 @@ class TimeSync # :nodoc:
           return [Hash[error => e]]
       end
   end
+
   def get_projects(query_parameters=nil)
       # get_projects(query_parameters)
 
@@ -398,7 +407,7 @@ class TimeSync # :nodoc:
 
       # Save for passing to test mode since format_endpoints deletes
       # kwargs["slug"] if it exists
-      if @query_parameters and query_parameters.has_key?("slug")
+      if @query_parameters && query_parameters.has_key?("slug")
           slug = query_parameters["slug"]
       elsif
           slug = nil
@@ -442,6 +451,7 @@ class TimeSync # :nodoc:
           return [Hash[error: e]]
       end
   end
+
   def get_activities(query_parameters=nil)
       # get_activities(query_parameters)
 
@@ -471,7 +481,7 @@ class TimeSync # :nodoc:
 
       # Save for passing to test mode since format_endpoints deletes
       # kwargs["slug"] if it exists
-      if @query_parameters and  query_parameters.has_key?("slug")
+      if @query_parameters &&  query_parameters.has_key?("slug")
           slug = query_parameters["slug"]
       elsif
           slug = nil
@@ -488,6 +498,7 @@ class TimeSync # :nodoc:
           if query_string is nil
               error_message = "invalid combination: slug and include_deleted"
               return [Hash[error: error_message]]
+          end
       elsif
           query_string = "?token={}".format(self.token)
       end
@@ -514,6 +525,8 @@ class TimeSync # :nodoc:
           # Request Error
           return [Hash[error: e]]
       end
+    end
+
   def get_users(username=nil)
       # get_users(username=nil)
 
@@ -558,6 +571,7 @@ class TimeSync # :nodoc:
           return [Hash[error => e]]
       end
   end
+
   def delete_time(uuid=nil)
       # delete_time(uuid=nil)
 
@@ -678,6 +692,7 @@ class TimeSync # :nodoc:
 
       return exp_datetime
   end
+
   def project_users(project=nil)
       # project_users(project)
 
@@ -763,7 +778,7 @@ private
     def response_to_ruby(response)
       # Convert response to native ruby list of objects
       # DELETE returns an empty body if successful
-        if not response.text and response.status_code == 200
+        if not response.text && response.status_code == 200
             return Hash['status' => 200]
         end
 
@@ -782,6 +797,7 @@ private
         end
         return ruby_object
     end
+
     def format_endpoints(queries)
         """Format endpoints for GET projects and activities requests. Returns
         nil if invalid combination of slug and include_deleted"""
@@ -789,7 +805,7 @@ private
         query_list = Array[]
 
         # The following combination is not allowed
-        if queries.has_key?("slug") and queries.has_key?("include_deleted")
+        if queries.has_key?("slug") && queries.has_key?("include_deleted")
             return nil
         # slug goes first, then delete it so it doesn't show up after the ?
         elsif queries.has_key?("slug")
@@ -873,8 +889,8 @@ private
         # If it is requried, remove that parameter from the missing_list, since
         # it is no longer missing
         for key, value in actual
-            if ( !(required_params[object_name].include? (key))
-                    and !(optional_params[object_name]).include? (key)))
+            if !(required_params[object_name].include? (key))
+                    && !(optional_params[object_name].include? (key))  # error
                 return "{0} object: invalid field: {1}".format(object_name,
                                                                key)
             end
@@ -886,7 +902,7 @@ private
 
         # If there is anything in missing_list, it is an absent required field
         # This only needs to be checked if the create_object flag is passed
-        if create_object and missing_list
+        if create_object && missing_list
             return "{0} object: missing required field(s): {1}".format(
                 object_name, missing_list.join(", "))
         end

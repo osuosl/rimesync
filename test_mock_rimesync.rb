@@ -2,10 +2,11 @@ require_relative 'rimesync'
 require 'test/unit'
 # require 'test/unit/ui/console/testrunner'
 
-class TestMockRimeSync < Test::Unit::TestCase
+# rubocop:disable ClassLength
+class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
   def setup
     baseurl = 'http://ts.example.com/v1'
-    @ts = TimeSync.new(baseurl, test = true)  # not working
+    @ts = TimeSync.new(baseurl, test = true) # rcop
     @ts.authenticate('testuser', 'testpassword', 'password')
   end
 
@@ -26,6 +27,7 @@ class TestMockRimeSync < Test::Unit::TestCase
                  Time.new(2016, 1, 13, 11, 45, 34))
   end
 
+  # rubocop:disable MethodLength
   def test_mock_create_time
     parameter_dict = Hash[
         'duration' => 12,
@@ -53,7 +55,7 @@ class TestMockRimeSync < Test::Unit::TestCase
     ]
 
     assert_equal(ts.create_time(parameter_dict), expected_result)
-   end
+  end
 
   def test_mock_update_time
     parameter_dict = Hash[
@@ -91,7 +93,7 @@ class TestMockRimeSync < Test::Unit::TestCase
     ]
 
     expected_result = Hash[
-        'duration' => 12600,
+        'duration' => 12_600,
         'user' => 'example-2',
         'project' => 'ganeti_web_manager',
         'activities' => ['docs'],
@@ -116,7 +118,7 @@ class TestMockRimeSync < Test::Unit::TestCase
     ]
 
     updated_param = Hash[
-        'duration' => 12900,
+        'duration' => 12_900,
         'user' => 'red-leader',
         'activities' => %w(hello world),
         'project' => ['ganeti'],
@@ -138,25 +140,29 @@ class TestMockRimeSync < Test::Unit::TestCase
     parameter_dict = Hash[
         'uri' => 'https://code.osuosl.org/projects/timesync',
         'name' => 'TimeSync API',
-        'slugs' => %w(['timesync', 'time']),
+        'slugs' => %w(timesync time),
         'users' => Hash[
-          'mrsj' => Hash['member' => true, 'spectator' => true, 'manager' => true],
-          'thai' => Hash['member' => true, 'spectator' => false, 'manager' => false]
+          'mrsj' => Hash['member' => true, 'spectator' => true,
+                         'manager' => true],
+          'thai' => Hash['member' => true, 'spectator' => false,
+                         'manager' => false]
         ]
     ]
 
     expected_result = Hash[
         'uri' => 'https://code.osuosl.org/projects/timesync',
         'name' => 'TimeSync API',
-        'slugs' => %w(['timesync', 'time']),
+        'slugs' => %w(timesync time),
         'uuid' => '309eae69-21dc-4538-9fdc-e6892a9c4dd4',
         'created_at' => '2015-05-23',
         'updated_at' => nil,
         'deleted_at' => nil,
         'revision' => 1,
         'users' => Hash[
-            'mrsj' => Hash['member' => true, 'spectator' => true, 'manager' => true],
-            'thai' => Hash['member' => true, 'spectator' => false, 'manager' => false]
+            'mrsj' => Hash['member' => true, 'spectator' => true,
+                           'manager' => true],
+            'thai' => Hash['member' => true, 'spectator' => false,
+                           'manager' => false]
         ]
     ]
 
@@ -179,10 +185,7 @@ class TestMockRimeSync < Test::Unit::TestCase
         'uuid' => '309eae69-21dc-4538-9fdc-e6892a9c4dd4',
         'revision' => 2,
         'users' => Hash[
-            'members' => Array[
-                'patcht',
-                'tschuy'
-            ],
+            'members' => %w(patcht tschuy),
             'spectators' => Array[
                 'tschuy'
             ],
@@ -284,8 +287,8 @@ class TestMockRimeSync < Test::Unit::TestCase
       Hash[
         'duration' => 12,
         'user' => 'userone',
-        'project' => Array['ganeti-webmgr', 'gwm'],
-        'activities' => Array['docs', 'planning'],
+        'project' => %w(ganeti-webmgr gwm),
+        'activities' => %w(docs planning),
         'notes' => 'Worked on documentation.',
         'issue_uri' => 'https://github.com/osuosl/ganeti_webmgr',
         'date_worked' => '2014-04-17',
@@ -306,8 +309,8 @@ class TestMockRimeSync < Test::Unit::TestCase
         Hash[
             'duration' => 12,
             'user' => 'userone',
-            'project' => Array['ganeti-webmgr', 'gwm'],
-            'activities' => Array['docs', 'planning'],
+            'project' => %w(ganeti-webmgr gwm),
+            'activities' => %w(docs planning),
             'notes' => 'Worked on documentation.',
             'issue_uri' => 'https://github.com/osuosl/ganeti_webmgr',
             'date_worked' => '2014-04-17',
@@ -320,8 +323,8 @@ class TestMockRimeSync < Test::Unit::TestCase
         Hash[
             'duration' => 13,
             'user' => 'usertwo',
-            'project' => Array['ganeti-webmgr', 'gwm'],
-            'activities' => Array['code', 'planning'],
+            'project' => %w(ganeti-webmgr gwm),
+            'activities' => %w(code planning),
             'notes' => 'Worked on coding',
             'issue_uri' => 'https://github.com/osuosl/ganeti_webmgr',
             'date_worked' => '2014-04-17',
@@ -334,7 +337,7 @@ class TestMockRimeSync < Test::Unit::TestCase
         Hash[
             'duration' => 14,
             'user' => 'userthree',
-            'project' => Array['timesync', 'ts'],
+            'project' => %w(timesync ts),
             'activities' => Array['code'],
             'notes' => 'Worked on coding',
             'issue_uri' => 'https://github.com/osuosl/timesync',
@@ -362,10 +365,7 @@ class TestMockRimeSync < Test::Unit::TestCase
         'deleted_at' => nil,
         'updated_at' => '2014-07-20',
         'users' => Hash[
-            'members' => Array[
-                'patcht',
-                'tschuy'
-            ],
+            'members' => %w(patcht tschuy),
             'spectators' => Array[
                 'tschuy'
             ],
@@ -391,10 +391,7 @@ class TestMockRimeSync < Test::Unit::TestCase
             'deleted_at' => nil,
             'updated_at' => '2014-07-20',
             'users' => Hash[
-                'members' => Array[
-                    'patcht',
-                    'tschuy'
-                ],
+                'members' => %w(patcht tschuy),
                 'spectators' => Array[
                     'tschuy'
                 ],
@@ -413,15 +410,8 @@ class TestMockRimeSync < Test::Unit::TestCase
             'deleted_at' => nil,
             'updated_at' => '2014-07-20',
             'users' => Hash[
-                'members' => Array[
-                    'patcht',
-                    'tschuy',
-                    'mrsj'
-                ],
-                'spectators' => Array[
-                    'tschuy',
-                    'mrsj'
-                ],
+                'members' => %w(patcht tschuy mrsj),
+                'spectators' => %w(tschuy mrsj),
                 'managers' => Array[
                     'tschuy'
                 ]
@@ -430,24 +420,15 @@ class TestMockRimeSync < Test::Unit::TestCase
         Hash[
             'uri' => 'https://code.osuosl.org/projects/rimesync',
             'name' => 'rimesync',
-            'slugs' => %w(['rimesync', 'rs']),
+            'slugs' => %w(rimesync rs),
             'uuid' => 'a034806c-ssss-cccc-8de8-514575f31bfb',
             'revision' => 1,
             'created_at' => '2014-07-17',
             'deleted_at' => nil,
             'updated_at' => '2014-07-20',
             'users' => Hash[
-                'members' => Array[
-                    'patcht',
-                    'tschuy',
-                    'mrsj',
-                    'MaraJade',
-                    'thai'
-                ],
-                'spectators' => Array[
-                    'tschuy',
-                    'mrsj'
-                ],
+                'members' => %w(patcht tschuy mrsj MaraJade thai),
+                'spectators' => %w(tschuy mrsj),
                 'managers' => Array[
                     'mrsj'
                 ]
@@ -456,7 +437,7 @@ class TestMockRimeSync < Test::Unit::TestCase
     ]
 
     assert_equal(ts.get_projects, expected_result)
-end
+  end
 
   def test_mock_get_activities_with_slug
     expected_result = Array[
@@ -552,7 +533,7 @@ end
         ],
         Hash[
             'username' => 'userthree',
-            'display_name' => 'Yes It''s The Saddest Experience',
+            'display_name' => 'Yes It is The Saddest Experience',
             'email' => 'examplethree@example.com',
             'active' => true,
             'site_admin' => false,
@@ -563,7 +544,7 @@ end
         ],
         Hash[
             'username' => 'userfour',
-            'display_name' => 'You''ll Ever Do',
+            'display_name' => 'You will Ever Do',
             'email' => 'examplefour@example.com',
             'active' => true,
             'site_admin' => false,
@@ -586,25 +567,25 @@ end
 
   def test_mock_project_users
     expected_result = Hash[
-          'malcolm': Array['member', 'manager'], # not sure about this
-          'jayne': Array['member'],
-          'kaylee': Array['member'],
-          'zoe': Array['member'],
-          'hoban': Array['member'],
-          'simon': Array['spectator'],
-          'river': Array['spectator'],
-          'derrial': Array['spectator'],
-          'inara': Array['spectator']
+          'malcolm' => %w(member manager),
+          'jayne' => Array['member'],
+          'kaylee' => Array['member'],
+          'zoe' => Array['member'],
+          'hoban' => Array['member'],
+          'simon' => Array['spectator'],
+          'river' => Array['spectator'],
+          'derrial' => Array['spectator'],
+          'inara' => Array['spectator']
       ]
 
     assert_equal(ts.project_users(project = 'ff'), expected_result)
   end
 
   def test_mock_project_users_no_slug
-    expected_result = Hash[ts.error => 'Missing project slug, please include in method call']
+    expected_result = Hash[ts.error => 'Missing project slug,
+                           please include in method call']
     assert_equal(ts.project_users, expected_result)
   end
 end
 
-
-# Test::Unit::UI::Console::TestRunner.run(TC_MyTest)
+# Test::Unit::UI::Console::TestRunner.run(TC_MyTest) # not sure

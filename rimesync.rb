@@ -26,13 +26,18 @@ require 'json'
 require_relative 'mock_rimesync'
 require 'bcrypt'
 require 'base64'
-require 'parsr'
 require 'rest-client'
 
 # workaround for making `''.is_a? Boolean` work
-module Boolean; end
-class TrueClass; include Boolean; end
-class FalseClass; include Boolean; end
+module Boolean
+  ;
+end
+class TrueClass;
+  include Boolean;
+end
+class FalseClass;
+  include Boolean;
+end
 
 # rubocop:disable ClassLength
 class TimeSync # :nodoc:
@@ -50,18 +55,18 @@ class TimeSync # :nodoc:
                               'start', 'end', 'include_revisions',
                               'include_deleted', 'uuid']
     required_params = Hash[
-            'time' => %w(duration project user activities date_worked),
-            'project' => %w(name slugs),
-            'activity' => %w(name slug),
-            'user' => %w(username password)
-        ]
+        'time' => %w(duration project user activities date_worked),
+        'project' => %w(name slugs),
+        'activity' => %w(name slug),
+        'user' => %w(username password)
+    ]
     optional_params = Hash[
-            'time' => %w(notes issue_uri),
-            'project' => %w(uri users),
-            'activity' => [],
-            'user' => %w(displayname email admin spectator
-                         manager admin meta active)
-        ]
+        'time' => %w(notes issue_uri),
+        'project' => %w(uri users),
+        'activity' => [],
+        'user' => %w(displayname email admin spectator
+        manager admin meta active)
+    ]
   end
 
   # rubocop:disable MethodLength
@@ -82,20 +87,20 @@ class TimeSync # :nodoc:
     # Check for correct arguments in method call
     arg_error_list = Array[]
 
-    unless @username
+    unless username
       arg_error_list.push('username')
     end
 
-    unless @password
+    unless password
       arg_error_list.push('password')
     end
 
-    unless @auth_type
+    unless auth_type
       arg_error_list.push('auth_type')
     end
 
-    if @arg_error_list
-      return Hash[error => 'Missing {}; please add to method call'.format(arg_error_list.join(', '))]
+    if arg_error_list.nil?
+      return Hash[@error => 'Missing %s; please add to method call' % Array[arg_error_list.join(', ')]]
     end
 
     arg_error_list = nil
@@ -105,10 +110,11 @@ class TimeSync # :nodoc:
     @auth_type = auth_type
 
     # Create the auth block to send to the login endpoint
-    @auth = Hash['auth' => auth] # not sure about this?
+    auth_hash = Hash['auth' => auth].to_json # not sure about this?
 
     # Construct the url with the login endpoint
-    @url = '{}/login'.format(baseurl) # not sure about this?
+    url = '%s/login' % Array[@baseurl] # not sure about this?
+    # url = "http://httpbin.org/post"
 
     # Test mode, set token and return it from the mocked method
     if @test
@@ -119,11 +125,11 @@ class TimeSync # :nodoc:
     # Send the request, then convert the resonse to a ruby dictionary
     begin
       # Success!
-      response = RestClient.post url auth.to_json # not sure about this
+      response = RestClient.post(url, auth_hash, :content_type => :json, :accept => :json)
       token_response = response_to_ruby(response)
     rescue => e
       # Request error
-      return Hash[error => e.response]
+      puts Hash[@error => e]
     end
 
     # If TimeSync returns an error, return the error without setting the
@@ -132,7 +138,7 @@ class TimeSync # :nodoc:
     if token_response.key?('error') || !token_response.key?('token')
       return token_response
     else
-      token = token_response['token']
+      @token = token_response['token']
       return token_response
     end
   end
@@ -148,7 +154,7 @@ class TimeSync # :nodoc:
     # ``time`` is a ruby dictionary containing the time information to send
     # to TimeSync.
     if time['duration'] < 0
-      return Hash[error => 'time object: duration cannot be negative']
+      return Hash[@error => 'time object: duration cannot be negative']
     end
 
     unless time['duration'].is_a? Integer
@@ -177,7 +183,7 @@ class TimeSync # :nodoc:
     # ``uuid`` contains the uuid for a time entry to update.
     if time.key?('duration')
       if time['duration'] < 0
-        return Hash[error => 'time object: duration cannot be negative']
+        return Hash[@error => 'time object: duration cannot be negative']
       end
 
       unless time['duration'].is_a? Integer
@@ -266,8 +272,8 @@ class TimeSync # :nodoc:
     ary = %w(site_admin site_manager site_spectator active)
     ary.each do |perm|
       if user.key?(perm) && !(user[perm].is_a? Boolean)
-        return Hash[error => 'user object: {} must be True or \
-                              False'.format(perm)]
+        return Hash[@error => 'user object: {} must be True or \
+          False'.format(perm)]
       end
     end
 
@@ -298,8 +304,8 @@ class TimeSync # :nodoc:
     ary = %w(site_admin site_manager site_spectator active)
     ary.each do |perm|
       if user.key?(perm) && !(user[perm].is_a? Boolean)
-        return Hash[error => 'user object: {} must be True \
-                              or False'.format(perm)]
+        return Hash[@error => 'user object: {} must be True \
+          or False'.format(perm)]
       end
     end
 
@@ -331,14 +337,14 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return [Hash[error => local_auth_error]]
+      return [Hash[@error => local_auth_error]]
     end
 
     # Check for key error
     if @query_parameters
       for key, value in query_parameters
         unless valid_get_queries.include?(key)
-          return [Hash[error => 'invalid query: {}'.format(key)]]
+          return [Hash[@error => 'invalid query: {}'.format(key)]]
         end
       end
     end
@@ -377,7 +383,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[error => e.response]]
+      return [Hash[@error => e.response]]
     end
   end
 
@@ -405,7 +411,7 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return [Hash[error => local_auth_error]]
+      return [Hash[@error => local_auth_error]]
     end
 
     # Save for passing to test mode since format_endpoints deletes
@@ -426,7 +432,7 @@ class TimeSync # :nodoc:
       # include_deleted, which is not allowed by the TimeSync API
       if query_string is nil
         error_message = 'invalid combination: slug and include_deleted'
-        return [Hash[error: error_message]]
+        return [Hash[@error => error_message]]
       end
     else
       query_string = '?token={}'.format(token)
@@ -451,7 +457,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[error: e.response]]
+      return [Hash[@error => e.response]]
     end
   end
 
@@ -479,7 +485,7 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return [Hash[error => local_auth_error]]
+      return [Hash[@error => local_auth_error]]
     end
 
     # Save for passing to test mode since format_endpoints deletes
@@ -500,19 +506,19 @@ class TimeSync # :nodoc:
       # include_deleted, which is not allowed by the TimeSync API
       if query_string is nil
         error_message = 'invalid combination: slug and include_deleted'
-        return [Hash[error: error_message]]
+        return [Hash[@error => error_message]]
       end
     else
-      query_string = '?token={}'.format(token)
+      query_string = '?token=%s' % @token
     end
 
     # Construct query url - at this point query_string ends with
     # ?token=token
-    url = '{0}/activities{1}'.format(baseurl, query_string)
+    url = '%s/activities%s' % Array[@baseurl, query_string]
 
     # Test mode, return list of projects if slug is nil, or a list of
     # projects
-    if test
+    if @test
       return mock_rimesync.get_activities(slug)
     end
 
@@ -525,7 +531,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[error: e.response]]
+      return [Hash[@error => e.response]]
     end
   end
 
@@ -544,15 +550,15 @@ class TimeSync # :nodoc:
 
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return [Hash[error => local_auth_error]]
+      return [Hash[@error => local_auth_error]]
     end
 
     # url should end with /users if no username is passed else
     # /users/username
-    url = username ? '{0}/users/{1}'.format(baseurl, username) : '{}/users'.format(baseurl)
+    url = username ? '%s/users/%s' % [@baseurl, username] : '%s/users' % @baseurl
 
     # The url should always end with a token
-    url += '?token={}'.format(token)
+    url += '?token=%s' % @token
 
     # Test mode, return one user object if username is passed else return
     # several user objects
@@ -569,7 +575,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[error => e.response]]
+      return [Hash[@error => e.response]]
     end
   end
 
@@ -584,11 +590,11 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return Hash[error => local_auth_error]
+      return Hash[@error => local_auth_error]
     end
 
     unless uuid
-      return Hash[error => 'missing uuid; please add to method call']
+      return Hash[@error => 'missing uuid; please add to method call']
     end
 
     return delete_object('times', uuid)
@@ -604,11 +610,11 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return Hash[error => local_auth_error]
+      return Hash[@error => local_auth_error]
     end
 
     unless @slug
-      return Hash[error => 'missing slug; please add to method call']
+      return Hash[@error => 'missing slug; please add to method call']
     end
 
     return delete_object('projects', slug)
@@ -624,11 +630,11 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     local_auth_error = local_auth_error
     if @local_auth_error
-      return Hash[error => local_auth_error]
+      return Hash[@error => local_auth_error]
     end
 
     unless @slug
-      return Hash[error: 'missing slug; please add to method call']
+      return Hash[@error => 'missing slug; please add to method call']
     end
 
     return delete_object('activities', slug)
@@ -645,12 +651,12 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return Hash[error => local_auth_error]
+      return Hash[@error => local_auth_error]
     end
 
     unless username
-      return Hash[error =>
-              'missing username; please add to method call']
+      return Hash[@error =>
+                      'missing username; please add to method call']
     end
 
     return delete_object('users', username)
@@ -663,7 +669,7 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return Hash[error => local_auth_error]
+      return Hash[@error => local_auth_error]
     end
 
     # Return valid date if in test mode
@@ -674,15 +680,15 @@ class TimeSync # :nodoc:
     # Decode the token, then get the second dict (payload) from the
     # resulting string. The payload contains the expiration time.
     begin
-      decoded_payload = Base64.decode64(token.split('.')[1])
+      decoded_payload = Base64.decode64(@token.split('.')[1])
     rescue
-      return Hash[error => 'improperly encoded token']
+      return Hash[@error => 'improperly encoded token']
     end
 
     # literal_eval the string representation of a dict to convert it to a
     # dict, then get the value at 'exp'. The value at 'exp' is epoch time
     # in ms
-    exp_int = Parsr.literal_eval(decoded_payload)['exp'] # not sure about this
+    exp_int = JSON.load(decoded_payload)['exp'] # not sure about this
 
     # Convert the epoch time from ms to s
     exp_int /= 1000
@@ -701,13 +707,13 @@ class TimeSync # :nodoc:
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
-      return Hash[error => local_auth_error]
+      return Hash[@error => local_auth_error]
     end
 
     # Check that a project slug was passed
     unless project
-      return Hash[error => 'Missing project slug, please \
-                            include in method call']
+      return Hash[@error => 'Missing project slug, please \
+        include in method call']
     end
 
     # Construct query url
@@ -725,7 +731,7 @@ class TimeSync # :nodoc:
       project_object = response_to_ruby(response)
     rescue => e
       # Request Error
-      return Hash[error => e.response]
+      return Hash[@error => e.response]
     end
 
     # Create the user dict to return
@@ -752,130 +758,129 @@ class TimeSync # :nodoc:
     return users
   end
 
-###############################################################################
-# Internal methods
-###############################################################################
+  ###############################################################################
+  # Internal methods
+  ###############################################################################
 
-private
+  # private
 
-    def auth
-      # Returns auth object to log in to TimeSync
-      return Hash['type' => auth_type,
-                  'username' => user,
-                  'password' => password ]
+  def auth
+    # Returns auth object to log in to TimeSync
+    return Hash['type' => @auth_type,
+                'username' => @user,
+                'password' => @password]
+  end
+
+  def token_auth
+    # Returns auth object with a token to send to TimeSync endpoints
+    return Hash['type' => 'token',
+                'token' => @token,]
+  end
+
+  def local_auth_error
+    # Checks that token is set.
+    # Returns error if not set, otherwise returns nil
+    return (@token ? nil : ('Not authenticated with TimeSync, call authenticate first'))
+  end
+
+  def response_to_ruby(response)
+    # Convert response to native ruby list of objects
+    # DELETE returns an empty body if successful
+    if response.body.empty? && response.code == 200
+      return Hash['status' => 200]
     end
 
-    def token_auth
-      # Returns auth object with a token to send to TimeSync endpoints
-      return Hash['type' => 'token',
-                  'token' => token, ]
+    # If response.body is valid JSON, it came from TimeSync. If it isn't
+    # and we got a ValueError, we know we are having trouble connecting to
+    # TimeSync because we are not getting a return from TimeSync.
+    begin
+      ruby_object = JSON.load(response.body)
+    rescue Exception => e
+      # If we get a ValueError, response.body isn't a JSON object, and
+      # therefore didn't come from a TimeSync connection.
+      err_msg = 'connection to TimeSync failed at baseurl %s - ' % @baseurl
+      err_msg += 'response status was %s' % response.code
+      return Hash[@error => err_msg]
     end
+    return ruby_object
+  end
 
-    def local_auth_error
-      # Checks that token is set.
-      # Returns error if not set, otherwise returns nil
-      return  (token ? nil : ('Not authenticated with TimeSync, \
-                               call authenticate first'))
-    end
-
-    def response_to_ruby(response)
-      # Convert response to native ruby list of objects
-      # DELETE returns an empty body if successful
-      if not response.text && response.status_code == 200
-        return Hash['status' => 200]
-      end
-
-      # If response.text is valid JSON, it came from TimeSync. If it isn't
-      # and we got a ValueError, we know we are having trouble connecting to
-      # TimeSync because we are not getting a return from TimeSync.
-      begin
-        ruby_object = json.load(unicode(response.text))
-      rescue Exception => e
-        # If we get a ValueError, response.text isn't a JSON object, and
-        # therefore didn't come from a TimeSync connection.
-        err_msg = 'connection to TimeSync failed at baseurl {} - '
-                  .format(baseurl)
-        err_msg += 'response status was {}'.format(response.status_code)
-        return Hash[error => err_msg]
-      end
-      return ruby_object
-    end
-
-    def format_endpoints(queries)
-      'Format endpoints for GET projects and activities requests. Returns
+  def format_endpoints(queries)
+    'Format endpoints for GET projects and activities requests. Returns
       nil if invalid combination of slug and include_deleted'
-      query_string = '?'
-      query_list = Array[]
+    query_string = '?'
+    query_list = Array[]
 
-      # The following combination is not allowed
-      if queries.key?('slug') && queries.key?('include_deleted')
-        return nil
+    # The following combination is not allowed
+    if queries.key?('slug') && queries.key?('include_deleted')
+      return nil
       # slug goes first, then delete it so it doesn't show up after the ?
-      elsif queries.key?('slug')
-        query_string = '/{}?'.format(queries['slug'])
-        queries['slug'] = nil
-      end
-
-      # Convert True and False booleans to TimeSync compatible strings
-      for k, v in sorted(queries.items, key=operator.itemgetter(0)) # will not work, research
-        queries[k] = v ? 'true' : 'false'
-        query_list.push('{0}={1}'.format(k, queries[k]))
-      end
-      # Check for items in query_list after slug was removed, create
-      # query string
-      if query_list
-        query_string += '{}&'.format(query_list.join("&"))
-      end
-      # Authenticate and return
-      query_string += "token={}".format(token)
-      return query_string
+    elsif queries.key?('slug')
+      query_string = '/{}?'.format(queries['slug'])
+      queries['slug'] = nil
     end
 
-    def construct_filter_query(queries)  # work on this
-      # Construct the query string for filtering GET queries, such as get_times
-      query_string = "?"
-      query_list = Array[]
+    # Convert True and False booleans to TimeSync compatible strings
+    for k, v in sorted(queries.items, key=operator.itemgetter(0)) # will not work, research
+      queries[k] = v ? 'true' : 'false'
+      query_list.push('{0}={1}'.format(k, queries[k]))
+    end
+    # Check for items in query_list after slug was removed, create
+    # query string
+    if query_list
+      query_string += '{}&'.format(query_list.join("&"))
+    end
+    # Authenticate and return
+    query_string += "token={}".format(token)
+    return query_string
+  end
 
-      # Format the include_* queries similarly to other queries for easier
-      # processing
+  def construct_filter_query(queries) # work on this
+    # Construct the query string for filtering GET queries, such as get_times
+    query_string = "?"
+    query_list = Array[]
+
+    # Format the include_* queries similarly to other queries for easier
+    # processing
+    if queries.key?("include_deleted")
+      queries["include_deleted"] = queries["include_deleted"] ? ["true"] : ["false"]
+    end
+
+    if queries.key?("include_revisions")
+      queries["include_revisions"] = (queries["include_revisions"] ? ["true"] : ["false"])
+    end
+
+    # If uuid is included, the only other accepted queries are the
+    # include_*s
+    if queries.key?("uuid")
+      query_string = "/{}?".format(queries["uuid"])
       if queries.key?("include_deleted")
-        queries["include_deleted"] = queries["include_deleted"] ? ["true"] : ["false"]
+        query_string += "include_deleted={}&"
+                            .format(queries["include_deleted"][0])
       end
 
       if queries.key?("include_revisions")
-        queries["include_revisions"] = (queries["include_revisions"] ? ["true"] : ["false"])
+        query_string += "include_revisions={}&".format(
+            queries["include_revisions"][0])
       end
 
-      # If uuid is included, the only other accepted queries are the
-      # include_*s
-      if queries.key?("uuid")
-        query_string = "/{}?".format(queries["uuid"])
-        if queries.key?("include_deleted")
-          query_string += "include_deleted={}&"
-                          .format(queries["include_deleted"][0])
-        end
-
-        if queries.key?("include_revisions")
-          query_string += "include_revisions={}&".format(
-              queries["include_revisions"][0])
-        end
-
       # Everthing is a list now, so iterate through and append
-      else
-        # Sort them into an alphabetized list for easier testing
-        sorted_qs = sorted(queries.items, key=operator.itemgetter(0))
-        for query, param in sorted_qs
-          for slug in param
-            # Format each query in the list
-            query_list.append("{0}={1}".format(query, slug))
-          end
+    else
+      # Sort them into an alphabetized list for easier testing
+      sorted_qs = sorted(queries.items, key=operator.itemgetter(0))
+      for query, param in sorted_qs
+        for slug in param
+          # Format each query in the list
+          query_list.append("{0}={1}".format(query, slug))
         end
+      end
 
-        # Construct the query_string using the list.
-        # Last character will be an & so we can append the token
-        for string in query_list
-          query_string += "{}&".format(string)
-        end
+      # Construct the query_string using the list.
+      # Last character will be an & so we can append the token
+      for string in query_list
+        query_string += "{}&".format(string)
+      end
+    end
       return query_string
     end
 
@@ -897,15 +902,14 @@ private
       # If it is requried, remove that parameter from the missing_list, since
       # it is no longer missing
       for key, value in actual
-        if !required_params[object_name].include? (key)
-                and !optional_params[object_name].include? (key)  # error
+        if !required_params[object_name].include? (key) and !optional_params[object_name].include? (key) # error
           return "{0} object: invalid field: {1}".format(object_name,
                                                          key)
-          end
-          # Remove field from copied list if the field is in required
-          if required_params[object_name].include? (key)
-            missing_list[missing_list.index(key)] = nil
-          end
+        end
+        # Remove field from copied list if the field is in required
+        if required_params[object_name].include? (key)
+          missing_list[missing_list.index(key)] = nil
+        end
       end
 
       # If there is anything in missing_list, it is an absent required field
@@ -929,16 +933,15 @@ private
 
       # Check that user has authenticated
       @local_auth_error = local_auth_error
+
       if @local_auth_error
-        return Hash[error => local_auth_error]
+        return Hash[@error => local_auth_error]
       end
 
       # Check that object contains required fields and no bad fields
-      @field_error = get_field_errors(object_fields,
-                                            object_name,
-                                            create_object)
+      @field_error = get_field_errors(object_fields, object_name, create_object)
       if @field_error
-        return Hash[error => field_error]
+        return Hash[@error => field_error]
       end
 
       # Since this is a POST request, we need an auth and object objects
@@ -954,8 +957,7 @@ private
 
       # Test mode, remove leading '/' from identifier
       if test
-        return test_handler(object_fields, identifier.drop(1),
-                                   object_name, create_object)
+        return test_handler(object_fields, identifier.drop(1), object_name, create_object)
       end
 
       # Attempt to POST to TimeSync, then convert the response to a ruby
@@ -966,7 +968,7 @@ private
         return response_to_ruby(response)
       rescue => e
         # Request error
-        return Hash[error => e.response]
+        return Hash[@error => e.response]
       end
     end
 
@@ -984,7 +986,7 @@ private
         # Convert duration to seconds
         return (hours_spent * 3600) + (minutes_spent * 60)
       rescue
-        error_msg = [Hash[error => "time object: invalid duration string"]]
+        error_msg = [Hash[@error => "time object: invalid duration string"]]
         return error_msg
       end
     end
@@ -1009,7 +1011,7 @@ private
         return response_to_ruby(response)
       rescue => e
         # Request error
-        return Hash[error => e.response]
+        return Hash[@error => e.response]
       end
     end
 
@@ -1020,28 +1022,28 @@ private
 
         when "time"
           if create_object
-              return mock_rimesync.create_time(parameters)
+            return mock_rimesync.create_time(parameters)
           else
-              return mock_rimesync.update_time(parameters, identifier)
+            return mock_rimesync.update_time(parameters, identifier)
           end
         when "project"
           if create_object
-              return mock_rimesync.create_project(parameters)
+            return mock_rimesync.create_project(parameters)
           else
-              return mock_rimesync.update_project(parameters, identifier)
+            return mock_rimesync.update_project(parameters, identifier)
           end
         when "activity"
           if create_object
-              return mock_rimesync.create_activity(parameters)
+            return mock_rimesync.create_activity(parameters)
           else
-              return mock_rimesync.update_activity(parameters, identifier)
+            return mock_rimesync.update_activity(parameters, identifier)
           end
         when "user"
           if create_object
-              return mock_rimesync.create_user(parameters)
+            return mock_rimesync.create_user(parameters)
           else
-              return mock_rimesync.update_user(parameters, identifier)
+            return mock_rimesync.update_user(parameters, identifier)
           end
-        end
+      end
     end
 end

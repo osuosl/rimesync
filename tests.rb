@@ -9,42 +9,36 @@ require 'bcrypt'
 require 'base64'
 require 'parsr'
 require 'rest-client'
+require 'webmock/test_unit'
 
 class Resp # :nodoc:
   def initialize
-    @text = nil
-    @status_code = nil
+    @body = nil
+    @code = nil
   end
 end
 
 # rubocop:disable ClassLength
 class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def setup
-    baseurl = 'http://ts.example.com/v1'
+    baseurl = 'http://ts.example.com/v0'
     @ts = TimeSync.new(baseurl) # not working
-    @ts.user = 'example-user'
-    @ts.password = 'password'
-    @ts.auth_type = 'password'
-    @ts.token = 'TESTTOKEN'
-  end
-
-  def teardown
-    remove_instance_variable(:@ts)
-    @post = actual_post # fix this and next two lines
-    @delete = actual_delete
-    @get = actual_get
+    @ts.instance_variable_set(:@user, 'example-user')
+    @ts.instance_variable_set(:@password, 'password')
+    @ts.instance_variable_set(:@auth_type, 'password')
+    @ts.instance_variable_set(:@token, 'TESTTOKEN')
   end
 
   # Test that instantiating rimesync with a token sets the token variable
   def test_instantiate_with_token
-    ts = rimesync.TimeSync('baseurl', token = 'TOKENTOCHECK') # not working
+    ts = TimeSync.new('baseurl', token = 'TOKENTOCHECK') # not working
     assert_equal(ts.token, 'TOKENTOCHECK')
   end
 
   # Test that instantiating rimesync without a token
   # does not sets the token variable
   def test_instantiate_without_token
-    ts = rimesync.TimeSync('baseurl')
+    ts = TimeSync.new('baseurl')
     assert_nil(ts.token)
   end
 
@@ -699,9 +693,22 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # def test_create_or_update_create_time_no_auth(self, m_resp_ruby):
   # end
 
-  # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
-  # def test_create_or_update_create_project_no_auth(self, m_resp_ruby):
-  # end
+
+  def test_create_or_update_create_project_no_auth
+  # Tests TimeSync._TimeSync__create_or_update for create project with no auth
+  # Parameters to be sent to TimeSync
+  project = Hash[
+      "uri" => "https://code.osuosl.org/projects/timesync",
+      "name" => "TimeSync API",
+      "slugs" => %w(timesync time),
+  ]
+
+  @ts.instance_variable_set(:@token, nil)
+
+  # Send it
+  assert_equal(@ts.create_or_update(project, nil, "project", "projects"),
+    Hash[@ts.instance_variable_get(:@error), "Not authenticated with ""TimeSync, call authenticate first"])
+  end
 
   # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
   # def test_create_or_update_create_activity_no_auth(self, m_resp_ruby):
@@ -1191,37 +1198,25 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_activities
   def test_get_activities # work on this
-    response = resp
-    response.text = json.dump([Hash['this' => 'should be in a list']])
+    url = '%s/activities?token=%s' % Array[@ts.instance_variable_get(:@baseurl), @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/activities?token={1}'.format(ts.baseurl, ts.token)
+    stub_request(:get, url).
+      to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called correctly
-    assert_equal(ts.get_activities,
+    assert_equal(@ts.get_activities,
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_activities with slug
   def test_get_activities_slug # work on this
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/activities/code?token=%s' % Array[@ts.instance_variable_get(:@baseurl), @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*activities.*/).
+      to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/activities/code?token={1}'.format(ts.baseurl,
-                                                 ts.token)
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_activities(Hash['slug' => 'code']),
+    assert_equal(@ts.get_activities(Hash['slug' => 'code']),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_activities with include_revisions query
@@ -1937,17 +1932,17 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that token_expiration_time returns valid date from a valid token
   def test_token_expiration_valid # work on this
-    ts.token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJITUFDLVNIQTUxMiJ9.ey\
+    @ts.instance_variable_set(:@token, 'eyJ0eXAiOiJKV1QiLCJhbGciOiJITUFDLVNIQTUxMiJ9.ey\
                Jpc3MiOiJvc3Vvc2wtdGltZXN5bmMtc3RhZ2luZyIsInN1YiI6\
                InRlc3QiLCJleHAiOjE0NTI3MTQzMzQwODcsImlhdCI6MTQ1Mj\
                cxMjUzNDA4N30=.QP2FbiY3I6e2eN436hpdjoBFbW9NdrRUHbk\
-               J+wr9GK9mMW7/oC/oKnutCwwzMCwjzEx6hlxnGo6/LiGyPBcm3w=='
+               J+wr9GK9mMW7/oC/oKnutCwwzMCwjzEx6hlxnGo6/LiGyPBcm3w==')
 
-    decoded_payload = Base64.decode64(ts.token.split('.')[1])
-    exp_int = Parsr.literal_eval(decoded_payload)['exp'] / 1000
-    exp_datetime = datetime.datetime.fromtimestamp(exp_int)
+    decoded_payload = Base64.decode64(@ts.instance_variable_get(:@token).split('.')[1])
+    exp_int = JSON.load(decoded_payload)['exp'] / 1000
+    exp_datetime = Time.at(exp_int)
 
-    assert_equal(ts.token_expiration_time, exp_datetime)
+    assert_equal(@ts.token_expiration_time, exp_datetime)
   end
 
   # Test that token_expiration_time returns correct from an invalid token

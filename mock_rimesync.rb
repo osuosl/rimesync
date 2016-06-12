@@ -1,5 +1,5 @@
 def authenticate
-  return Hash['token' => 'TESTTOKEN'] # rcop
+  Hash['token' => 'TESTTOKEN'] # rcop
 end
 
 def token_expiration_time

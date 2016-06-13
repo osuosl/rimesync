@@ -44,7 +44,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # rubocop:disable MethodLength
   # Tests TimeSync._TimeSync__create_or_update for create time with valid data
-  def test_create_or_update_create_time_valid # work on this
+  def test_create_or_update_create_time_valid
     # Parameters to be sent to TimeSync
     time = Hash[
         'duration' => 12,
@@ -74,7 +74,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync._TimeSync__create_or_update for update time with valid data
-  def test_create_or_update_update_time_valid # work on this
+  def test_create_or_update_update_time_valid
     # Parameters to be sent to TimeSync
     time = Hash[
         'duration' => 12,
@@ -109,7 +109,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update
   # for update time with one valid parameter
-  def test_create_or_update_update_time_valid_less_fields # work on this
+  def test_create_or_update_update_time_valid_less_fields
     # Parameters to be sent to TimeSync
     time = Hash[
         'duration' => 12,
@@ -210,7 +210,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync._TimeSync__create_or_update for create user with valid data
-  def test_create_or_update_create_user_valid # work on this
+  def test_create_or_update_create_user_valid
     # Parameters to be sent to TimeSync
     user = Hash[
         'username' => 'example-user',
@@ -237,7 +237,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync._TimeSync__create_or_update for update user with valid data
-  def test_create_or_update_update_user_valid # work on this
+  def test_create_or_update_update_user_valid
     # Parameters to be sent to TimeSync
     user = Hash[
         'username' => 'example-user',
@@ -270,7 +270,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update
   # for update user with one valid parameter
-  def test_create_or_update_update_user_valid_less_fields # work on this
+  def test_create_or_update_update_user_valid_less_fields
     # Parameters to be sent to TimeSync
     user = Hash[
         'display_name' => 'Example User',
@@ -370,7 +370,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update
   # for create project with valid data
-  def test_create_or_update_create_project_valid # work on this
+  def test_create_or_update_create_project_valid
     # Parameters to be sent to TimeSync
     project = Hash[
       'uri' => 'https://code.osuosl.org/projects/timesync',
@@ -404,7 +404,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update for
   # update project with valid parameters
-  def test_create_or_update_update_project_valid # work on this
+  def test_create_or_update_update_project_valid
     # Parameters to be sent to TimeSync
     project = Hash[
         'uri' => 'https://code.osuosl.org/projects/timesync',
@@ -439,7 +439,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update for
   # update project with one valid parameter
-  def test_create_or_update_update_project_valid_less_fields # work on this
+  def test_create_or_update_update_project_valid_less_fields
     # Parameters to be sent to TimeSync
     project = Hash[
         'slugs' => %w(timesync time),
@@ -540,7 +540,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update for
   # create activity with valid data
-  def test_create_or_update_create_activity_valid # work on this
+  def test_create_or_update_create_activity_valid
     # Parameters to be sent to TimeSync
     project = Hash[
       'name' => 'Quality Assurance/Testing',
@@ -567,7 +567,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update
   # for update activity with valid parameters
-  def test_create_or_update_update_activity_valid # work on this
+  def test_create_or_update_update_activity_valid
     # Parameters to be sent to TimeSync
     activity = Hash[
       'name' => 'Quality Assurance/Testing',
@@ -595,7 +595,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync._TimeSync__create_or_update
   # for update activity with one valid parameter
-  def test_create_or_update_update_activity_valid_less_fields  # work in this
+  def test_create_or_update_update_activity_valid_less_fields
     # Parameters to be sent to TimeSync
     activity = Hash[
         'slug' => 'qa',
@@ -698,16 +698,16 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync._TimeSync__create_or_update for create project with no auth
   # Parameters to be sent to TimeSync
   project = Hash[
-      "uri" => "https://code.osuosl.org/projects/timesync",
-      "name" => "TimeSync API",
-      "slugs" => %w(timesync time),
+      'uri' => 'https://code.osuosl.org/projects/timesync',
+      'name' => 'TimeSync API',
+      'slugs' => %w(timesync time),
   ]
 
   @ts.instance_variable_set(:@token, nil)
 
   # Send it
-  assert_equal(@ts.create_or_update(project, nil, "project", "projects"),
-    Hash[@ts.instance_variable_get(:@error), "Not authenticated with ""TimeSync, call authenticate first"])
+  assert_equal(@ts.create_or_update(project, nil, 'project', 'projects'),
+    Hash[@ts.instance_variable_get(:@error), 'Not authenticated with ""TimeSync, call authenticate first'])
   end
 
   # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
@@ -739,7 +739,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with username query parameter
-  def test_get_time_for_user # work on this
+  def test_get_time_for_user
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -757,7 +757,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with project query parameter
-  def test_get_time_for_proj # work on this
+  def test_get_time_for_proj
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -775,7 +775,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with activity query parameter
-  def test_get_time_for_activity # work on this
+  def test_get_time_for_activity
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -793,7 +793,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with start date query parameter
-  def test_get_time_for_start_date # work on this
+  def test_get_time_for_start_date
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -811,7 +811,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with end date query parameter
-  def test_get_time_for_end_date # work on this
+  def test_get_time_for_end_date
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -829,7 +829,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with include_revisions query parameter
-  def test_get_time_for_include_revisions # work on this
+  def test_get_time_for_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -847,7 +847,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with include_revisions false query parameter
-  def test_get_time_for_include_revisions_false # work on this
+  def test_get_time_for_include_revisions_false
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -883,7 +883,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with include_revisions false query parameter
-  def test_get_time_for_include_deleted_false # work on this
+  def test_get_time_for_include_deleted_false
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -901,7 +901,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with project and activity query parameters
-  def test_get_time_for_proj_and_activity # work on this
+  def test_get_time_for_proj_and_activity
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -921,7 +921,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with project and activity query parameters
-  def test_get_time_for_activity_x3 # work on this
+  def test_get_time_for_activity_x3
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -943,7 +943,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with uuid query parameter
-  def test_get_time_with_uuid # work on this
+  def test_get_time_with_uuid
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -961,7 +961,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with uuid and activity query parameters
-  def test_get_time_with_uuid_and_activity # work on this
+  def test_get_time_with_uuid_and_activity
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -980,7 +980,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with uuid and include_revisions query parameters
-  def test_get_time_with_uuid_and_include_revisions # work on this
+  def test_get_time_with_uuid_and_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -999,7 +999,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with uuid and include_deleted query parameters
-  def test_get_time_with_uuid_and_include_deleted # Work on this
+  def test_get_time_with_uuid_and_include_deleted
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1018,7 +1018,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with uuid and include_deleted query parameters
-  def test_get_time_with_uuid_include_deleted_and_revisions # work on this
+  def test_get_time_with_uuid_include_deleted_and_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1043,7 +1043,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_times with no parameters
-  def test_get_all_times # work on this
+  def test_get_all_times
     response = resp
     response.text = json.dump([Hash['this' => 'should be in a list']])
 
@@ -1068,7 +1068,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_projects
-  def test_get_projects # work on this
+  def test_get_projects
     response = resp
     response.text = json.dump([Hash['this' => 'should be in a list']])
 
@@ -1086,7 +1086,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_projects with slug
-  def test_get_projects_slug # work on this
+  def test_get_projects_slug
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1104,7 +1104,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_projects with include_revisions query
-  def test_get_projects_include_revisions # work on this
+  def test_get_projects_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1122,7 +1122,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_projects with include_revisions query and slug
-  def test_get_projects_slug_include_revisions # work on this
+  def test_get_projects_slug_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1143,7 +1143,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_projects with include_deleted query
-  def test_get_projects_include_deleted # work on this
+  def test_get_projects_include_deleted
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1176,7 +1176,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_projects with
   # include_revisions and include_deleted queries
-  def test_get_projects_include_deleted_include_revisions # work on this
+  def test_get_projects_include_deleted_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1197,11 +1197,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_activities
-  def test_get_activities # work on this
+  def test_get_activities
     url = '%s/activities?token=%s' % Array[@ts.instance_variable_get(:@baseurl), @ts.instance_variable_get(:@token)]
 
-    stub_request(:get, url).
-      to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
+    stub_request(:get, url)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called correctly
     assert_equal(@ts.get_activities,
@@ -1209,8 +1209,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_activities with slug
-  def test_get_activities_slug # work on this
-    url = '%s/activities/code?token=%s' % Array[@ts.instance_variable_get(:@baseurl), @ts.instance_variable_get(:@token)]
+  def test_get_activities_slug
+    url = '%s/activities/code?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*activities.*/).
       to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
@@ -1220,7 +1221,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_activities with include_revisions query
-  def test_get_activities_include_revisions # work on this
+  def test_get_activities_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1238,7 +1239,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_projects with include_revisions query and slug
-  def test_get_activities_slug_include_revisions # work on this
+  def test_get_activities_slug_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1257,7 +1258,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_activities with include_deleted query
-  def test_get_activities_include_deleted # work on this
+  def test_get_activities_include_deleted
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1292,7 +1293,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_activities with
   # include_revisions and include_deleted queries
-  def test_get_activities_include_deleted_include_revisions # work on this
+  def test_get_activities_include_deleted_include_revisions
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1339,7 +1340,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_users
-  def test_get_users # work on this
+  def test_get_users
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1358,7 +1359,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests TimeSync.get_users with username
-  def test_get_users_username # work on this
+  def test_get_users_username
     response = resp
     response.text = json.dump(Hash['this' => 'should be in a list'])
 
@@ -1388,7 +1389,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that TimeSync._TimeSync__response_to_ruby
   # converts a json object to a  list of object
-  def test_response_to_ruby_single_object # work on this
+  def test_response_to_ruby_single_object
     json_object = Hash[
       'uri' => 'https://code.osuosl.org/projects/ganeti-webmgr',
       'name' => 'Ganeti Web Manager',
@@ -1422,7 +1423,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that TimeSync._TimeSync__response_to_ruby
   # converts a json list of objects to a ruby list of objects
-  def test_response_to_ruby_list_of_object # work on this
+  def test_response_to_ruby_list_of_object
     json_object = Array[
         Hash[
           'name' => 'Documentation',
@@ -1491,7 +1492,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Check that __response_to_ruby returns correctly for delete_*G methods
-  def test_response_to_ruby_empty_response # work on this
+  def test_response_to_ruby_empty_response
     response = resp
     response.text = ''
     response.status_code = 200
@@ -1675,7 +1676,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # end
 
   # Tests authenticate method for url and data construction
-  def test_authentication # work on this
+  def test_authentication
     auth = Hash[
       'auth' => Hash[
           'type' => 'password',
@@ -1694,7 +1695,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests authenticate method with a token return
-  def test_authentication_return_success  # work in this
+  def test_authentication_return_success
     # Use this fake response object for mocking requests.post
     response = resp
     response.text = json.dump(Hash['token' => 'sometoken'])
@@ -1710,7 +1711,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests authenticate method with an error return
-  def test_authentication_return_error # work on this
+  def test_authentication_return_error
     # Use this fake response object for mocking requests.post
     response = resp
     response.text = json.dump(Hash['status' => 401,
@@ -1779,7 +1780,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Tests authenticate method with no token in response
-  def test_authentication_no_token_in_response  # work ont this
+  def test_authentication_no_token_in_response
     response = resp
     response.status_code = 502
 
@@ -1819,7 +1820,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Test that _delete_object calls requests.delete with the correct url
-  def test_delete_object_time # work on this
+  def test_delete_object_time
     requests.delete = mock.create_autospec(requests.delete)
     url = '{0}/times/abcd-3453-3de3-99sh?token={1}'.format(ts.baseurl,
                                                            ts.token)
@@ -1828,7 +1829,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Test that _delete_object calls requests.delete with the correct url
-  def test_delete_object_project # work on this
+  def test_delete_object_project
     requests.delete = mock.create_autospec(requests.delete)
     url = '{0}/projects/ts?token={1}'.format(ts.baseurl,
                                              ts.token)
@@ -1837,7 +1838,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Test that _delete_object calls requests.delete with the correct url
-  def test_delete_object_activity # work on this
+  def test_delete_object_activity
     requests.delete = mock.create_autospec(requests.delete)
     url = '{0}/activities/code?token={1}'.format(ts.baseurl,
                                                  ts.token)
@@ -1846,7 +1847,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Test that _delete_object calls requests.delete with the correct url
-  def test_delete_object_user # work on this
+  def test_delete_object_user
     requests.delete = mock.create_autospec(requests.delete)
     url = '{0}/users/example-user?token={1}'.format(ts.baseurl,
                                                     ts.token)
@@ -1931,14 +1932,17 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Test that token_expiration_time returns valid date from a valid token
-  def test_token_expiration_valid # work on this
-    @ts.instance_variable_set(:@token, 'eyJ0eXAiOiJKV1QiLCJhbGciOiJITUFDLVNIQTUxMiJ9.ey\
-               Jpc3MiOiJvc3Vvc2wtdGltZXN5bmMtc3RhZ2luZyIsInN1YiI6\
-               InRlc3QiLCJleHAiOjE0NTI3MTQzMzQwODcsImlhdCI6MTQ1Mj\
-               cxMjUzNDA4N30=.QP2FbiY3I6e2eN436hpdjoBFbW9NdrRUHbk\
-               J+wr9GK9mMW7/oC/oKnutCwwzMCwjzEx6hlxnGo6/LiGyPBcm3w==')
+  def test_token_expiration_valid
+    @ts.instance_variable_set(:@token, 'eyJ0eXAiOiJKV1QiLCJhbGciO\
+                              iJITUFDLVNIQTUxMiJ9.eyJpc3MiOiJvc3Vv\
+                              c2wtdGltZXN5bmMtc3RhZ2luZyIsInN1YiI6\
+                              InRlc3QiLCJleHAiOjE0NTI3MTQzMzQwODcsI\
+                              mlhdCI6MTQ1MjcxMjUzNDA4N30=.QP2FbiY3I6\
+                              e2eN436hpdjoBFbW9NdrRUHbkJ+wr9GK9mMW7/oC/oK\
+                              nutCwwzMCwjzEx6hlxnGo6/LiGyPBcm3w==')
 
-    decoded_payload = Base64.decode64(@ts.instance_variable_get(:@token).split('.')[1])
+    decoded_payload = Base64.decode64(@ts.instance_variable_get(:@token)
+                                      .split('.')[1])
     exp_int = JSON.load(decoded_payload)['exp'] / 1000
     exp_datetime = Time.at(exp_int)
 
@@ -2057,7 +2061,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Test project_users method with an error object returned from TimeSync
-  def test_project_users_error_response # work on this
+  def test_project_users_error_response
     proj = 'rimes'
     response = resp
     response.status_code = 404
@@ -2077,20 +2081,20 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test project_users method with no project object
   # passed as a parameter, should return an error
-  def test_project_users_no_project_parameter # work on this
+  def test_project_users_no_project_parameter
     assert_equal(ts.project_users,
                  Hash[ts.error =>
                       'Missing project slug, please include in method call'])
   end
 
   # Test that the trailing slash in the baseurl is removed
-  def test_baseurl_with_trailing_slash # work on this
+  def test_baseurl_with_trailing_slash
     ts = TimeSync.new('http://ts.example.com/v1/')
     assert_equal(ts.baseurl, 'http://ts.example.com/v1')
   end
 
   # Test that the trailing slash in the baseurl is removed
-  def test_baseurl_without_trailing_slash # work on this
+  def test_baseurl_without_trailing_slash
     ts = TimeSync.new('http://ts.example.com/v1')
     assert_equal(ts.baseurl, 'http://ts.example.com/v1')
   end

@@ -3,7 +3,7 @@ def authenticate
 end
 
 def token_expiration_time
-  return Time.new(2016, 1, 13, 11, 45, 34) # rcop
+  Time.new(2016, 1, 13, 11, 45, 34) # rcop
 end
 
 # Sends time to baseurl (TimeSync)
@@ -15,7 +15,7 @@ def create_time(p_dict)
   p_dict['revision'] = 1
   p_dict['notes'] = p_dict['notes'] ? p_dict['notes'] : nil
   p_dict['issue_uri'] = p_dict['issue_uri'] ? p_dict['issue_uri'] : nil
-  return p_dict # rcop
+  p_dict # rcop
 end
 
 # Updates time by uuid
@@ -36,14 +36,16 @@ def update_time(p_dict, uuid)
     'uuid' => uuid,
     'revision' => 2
   ]
-  return updated_param
+  updated_param
 end
 
 # Creates project
 def create_project(p_dict)
   p_dict['users'] = p_dict.key?('users') ? p_dict['users'] : Hash[
-        'mrsj' => Hash['member' => true, 'spectator' => true, 'manager' => true],
-        'tschuy' => Hash['member' => true, 'spectator' => false, 'manager' => false]
+        'mrsj' => Hash['member' => true, 'spectator' => true,
+                       'manager' => true],
+        'tschuy' => Hash['member' => true, 'spectator' => false,
+                         'manager' => false]
   ]
   p_dict['uuid'] = '309eae69-21dc-4538-9fdc-e6892a9c4dd4'
   p_dict['revision'] = 1
@@ -51,7 +53,7 @@ def create_project(p_dict)
   p_dict['updated_at'] = nil
   p_dict['deleted_at'] = nil
   p_dict['uri'] = p_dict.key?('uri') ? p_dict['uri'] : nil
-  return p_dict
+  p_dict
 end
 
 # Updates project by slug
@@ -75,7 +77,7 @@ def update_project(p_dict, slug)
         ]
     ]
   ]
-  return updated_param
+  updated_param
 end
 
 # Creates activity
@@ -85,7 +87,7 @@ def create_activity(p_dict)
   p_dict['updated_at'] = nil
   p_dict['deleted_at'] = nil
   p_dict['revision'] = 1
-  return p_dict
+  p_dict
 end
 
 # Updates activity by slug
@@ -99,7 +101,7 @@ def update_activity(p_dict, slug)
     'deleted_at' => nil,
     'revision' => 2
   ]
-  return updated_param
+  updated_param
 end
 
 # Creates a user
@@ -111,7 +113,7 @@ def create_user(p_dict)
   p_dict['created_at'] = '2015-05-23'
   p_dict['deleted_at'] = nil
   del(p_dict['password'])
-  return p_dict
+  p_dict
 end
 
 # Updates user by username
@@ -127,7 +129,7 @@ def update_user(p_dict, username)
     'created_at' => '2015-02-29',
     'deleted_at' => nil
   ]
-  return updated_param
+  updated_param
 end
 
 # Get times from TimeSync
@@ -183,7 +185,7 @@ def get_times(uuid)
       ]
     )
   end
-  return p_list
+  p_list
 end
 
 # Get project information from TimeSync
@@ -250,7 +252,7 @@ def get_projects(slug)
       ]
     )
   end
-  return p_list
+  p_list
 end
 
 # Get activity information from TimeSync
@@ -291,7 +293,7 @@ def get_activities(slug)
       ]
     )
   end
-  return p_list
+  p_list
 end
 
 # Get user information from TimeSync
@@ -358,12 +360,12 @@ def get_users(username)
       ]
     ]
   end
-  return p_dict
+  p_dict
 end
 
 # Delete an object from TimeSync
 def delete_object
-  return Array[Hash['status' => 200]]
+  Array[Hash['status' => 200]]
 end
 
 # Return list of users and permissions from TimeSync
@@ -379,5 +381,5 @@ def project_users
     'derrial' => ['spectator'],
     'inara' =>   ['spectator']
   ]
-  return users
+  users
 end

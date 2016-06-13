@@ -750,8 +750,7 @@ class TimeSync # :nodoc:
         users[user] = perm
       end
     end
-
-    return users
+    users
   end
 
   ################################################
@@ -762,15 +761,15 @@ class TimeSync # :nodoc:
 
   def auth
     # Returns auth object to log in to TimeSync
-    return Hash['type' => @auth_type,
-                'username' => @user,
-                'password' => @password]
+    Hash['type' => @auth_type,
+         'username' => @user,
+         'password' => @password]
   end
 
   def token_auth
     # Returns auth object with a token to send to TimeSync endpoints
-    return Hash['type' => 'token',
-                'token' => @token,]
+    Hash['type' => 'token',
+         'token' => @token,]
   end
 
   def local_auth_error
@@ -832,7 +831,7 @@ class TimeSync # :nodoc:
     # Authenticate and return
     # query_string += 'token=%s' % @token
     query_string += format('token=%s', @token)
-    return query_string
+    query_string
   end
 
   def construct_filter_query(queries) # work on this
@@ -870,7 +869,7 @@ class TimeSync # :nodoc:
       # Everthing is a list now, so iterate through and append
     else
       # Sort them into an alphabetized list for easier testing
-      sorted_qs = sorted(queries.items, key=operator.itemgetter(0))
+      sorted_qs = sorted(queries.items, key = operator.itemgetter(0))
       for query, param in sorted_qs
         for slug in param
           # Format each query in the list
@@ -885,8 +884,8 @@ class TimeSync # :nodoc:
         query_string += '%s&' % string
       end
     end
-      return query_string
-    end
+    query_string
+  end
 
   def get_field_errors(actual, object_name, create_object)
     # Checks that ``actual`` parameter passed to POST method contains
@@ -906,13 +905,13 @@ class TimeSync # :nodoc:
     # If it is requried, remove that parameter from the missing_list, since
     # it is no longer missing
     for key, value in actual
-      if !@required_params[object_name].include? (key) and !@optional_params[object_name].include? (key) # error
+      if !@required_params[object_name].include?key and !@optional_params[object_name].include?key # error
         return '%s object: invalid field: %s' % Array[object_name, key]
       end
       # Remove field from copied list if the field is in required
-      if @required_params[object_name].include? (key)
+      if @required_params[object_name].include? key
         # puts missing_list.index(key)
-        missing_list.delete_at(missing_list.index(key))  # error
+        missing_list.delete_at(missing_list.index(key)) # error
       end
     end
 
@@ -923,7 +922,7 @@ class TimeSync # :nodoc:
           object_name, missing_list.join(', ')]
     end
     # No errors if we made it this far
-    return nil
+    nil
   end
 
   def create_or_update(object_fields, identifier,

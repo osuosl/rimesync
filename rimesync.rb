@@ -361,9 +361,7 @@ class TimeSync # :nodoc:
     end
 
     # Construct query url, at this point query_string ends with a ?
-    url = '{0}/times{1}token={2}'.format(baseurl,
-                                         query_string,
-                                         token)
+    url = '%s/times%stoken=%s' % Array[@baseurl, query_string, @token]
 
     # Test mode, return one or many objects depending on if uuid is passed
     if @test
@@ -422,7 +420,7 @@ class TimeSync # :nodoc:
       slug = nil
     end
 
-    @query_string = ''
+    query_string = ''
 
     # If kwargs exist, create a correct query string
     # Else, prepare query_string for the token
@@ -435,12 +433,12 @@ class TimeSync # :nodoc:
         return [Hash[@error => error_message]]
       end
     else
-      query_string = '?token={}'.format(token)
+      query_string = '?token=%s' % @token
     end
 
     # Construct query url - at this point query_string ends with
     # ?token=token
-    url = '{0}/projects{1}'.format(baseurl, query_string)
+    url = '%s/projects%s' % Array[@baseurl, query_string]
 
     # Test mode, return list of projects if slug is nil, or a single
     # project

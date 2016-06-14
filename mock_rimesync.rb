@@ -28,8 +28,13 @@ def update_time(p_dict, uuid)
     'activities' => p_dict.key?('activities') ? p_dict['activities'] : ['qa'],
     'project' => p_dict.key?('project') ? p_dict['project'] : ['ganeti'],
     'notes' => p_dict.key?('notes') ? p_dict['notes'] : nil,
-    'issue_uri' => p_dict.key?('issue_uri') ? p_dict['issue_uri'] : 'https://github.com/osuosl/ganeti_webmgr/issues/56',
-    'date_worked' => p_dict.key?('date_worked') ? p_dict['date_worked'] : '2015-08-07',
+    # 'issue_uri' => p_dict.key?('issue_uri') ? p_dict['issue_uri'] : 'https://github.com/osuosl/ganeti_webmgr/issues/56',
+    'issue_uri' => if p_dict.key?('issue_uri') then p_dict['issue_uri']
+                   else 'https://github.com/osuosl/ganeti_webmgr/issues/56'
+                   end,
+    'date_worked' => if p_dict.key?('date_worked') then p_dict['date_worked']
+                     else '2015-08-07'
+                     end,
     'created_at' => '2014-06-12',
     'updated_at' => '2015-10-18',
     'deleted_at' => nil,
@@ -107,12 +112,21 @@ end
 # Creates a user
 def create_user(p_dict)
   p_dict['active'] = true
-  p_dict['site_admin'] = p_dict.key?('site_admin') ? p_dict['site_admin'] : false
-  p_dict['site_manager'] = p_dict.key?('site_manager') ? p_dict['site_manager'] : false
-  p_dict['site_spectator'] = p_dict.key?('site_spectator') ? p_dict['site_spectator'] : false
+  p_dict['site_admin'] = if p_dict.key?('site_admin')
+                           p_dict['site_admin']
+                         else false
+                         end
+  p_dict['site_manager'] = if p_dict.key?('site_manager')
+                             p_dict['site_manager']
+                           else false
+                           end
+  p_dict['site_spectator'] = if p_dict.key?('site_spectator')
+                               p_dict['site_spectator']
+                             else false
+                             end
   p_dict['created_at'] = '2015-05-23'
   p_dict['deleted_at'] = nil
-  del(p_dict['password'])
+  p_dict.delete('password')
   p_dict
 end
 
@@ -120,12 +134,21 @@ end
 def update_user(p_dict, username)
   updated_param = Hash[
     'username' => p_dict.key?('username') ? p_dict['username'] : username,
-    'display_name' => p_dict.key?('display_name') ? p_dict['display_name'] : 'Mr. Example',
+    'display_name' => if p_dict.key?('display_name')
+                        p_dict['display_name']
+                      else 'Mr. Example'
+                      end,
     'email' => p_dict.key?('email') ? p_dict['email'] : 'examplej@example.com',
     'active' => true,
     'site_admin' => p_dict.key?('site_admin') ? p_dict['site_admin'] : false,
-    'site_manager' => p_dict.key?('site_manager') ? p_dict['site_manager'] : false,
-    'site_spectator' => p_dict.key?('site_spectator') ? (p_dict['site_spectator']) : false,
+    'site_manager' => if p_dict.key?('site_manager')
+                        p_dict['site_manager']
+                      else false
+                      end,
+    'site_spectator' => if p_dict.key?('site_spectator')
+                          p_dict['site_spectator']
+                        else false
+                        end,
     'created_at' => '2015-02-29',
     'deleted_at' => nil
   ]

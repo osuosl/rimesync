@@ -1,6 +1,3 @@
-# import mock
-# from mock import patch
-
 require 'test/unit'
 require 'http'
 require_relative 'rimesync'
@@ -31,19 +28,19 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that instantiating rimesync with a token sets the token variable
   def test_instantiate_with_token
-    ts = TimeSync.new('baseurl', token = 'TOKENTOCHECK') # not working
-    assert_equal(ts.token, 'TOKENTOCHECK')
+    @ts = TimeSync.new('baseurl', token = 'TOKENTOCHECK') # not sure about "@"ts
+    assert_equal(@ts.instance_variable_get(:@token), 'TOKENTOCHECK')
   end
 
   # Test that instantiating rimesync without a token
   # does not sets the token variable
   def test_instantiate_without_token
-    ts = TimeSync.new('baseurl')
-    assert_nil(ts.token)
+    @ts = TimeSync.new('baseurl') # not sure about "@"ts
+    assert_nil(@ts.instance_variable_get(:@token))
   end
 
   # rubocop:disable MethodLength
-  # Tests TimeSync._TimeSync__create_or_update for create time with valid data
+  # Tests TimeSync._TimeSync.create_or_update for create time with valid data
   def test_create_or_update_create_time_valid
     # Parameters to be sent to TimeSync
     time = Hash[
@@ -740,424 +737,321 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_times with username query parameter
   def test_get_time_for_user
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?user=example-user&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                        @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?user=example-user&token={1}'.format(ts.baseurl,
-                                                         ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['user' => [ts.user]]),
+    assert_equal(@ts.get_times(Hash['user' => [@ts.instance_variable_get(:@user)]]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with project query parameter
   def test_get_time_for_proj
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?project=gwm&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                        @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?project=gwm&token={1}'.format(ts.baseurl,
-                                                   ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['project' => ['gwm']]),
+    assert_equal(@ts.get_times(Hash['project' => ['gwm']]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with activity query parameter
   def test_get_time_for_activity
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?activity=dev&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                     @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?activity=dev&token={1}'.format(ts.baseurl,
-                                                    ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['activity' => ['dev']]),
+    assert_equal(@ts.get_times(Hash['activity' => ['dev']]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with start date query parameter
   def test_get_time_for_start_date
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?start=2015-07-23&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                         @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?start=2015-07-23&token={1}'.format(ts.baseurl,
-                                                        ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['start' => ['2015-07-23']]),
+    assert_equal(@ts.get_times(Hash['start' => ['2015-07-23']]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with end date query parameter
   def test_get_time_for_end_date
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?end=2015-07-23&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                       @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?end=2015-07-23&token={1}'.format(ts.baseurl,
-                                                      ts.token)
-
-    # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['end' => ['2015-07-23']]),
+    assert_equal(@ts.get_times(Hash['end' => ['2015-07-23']]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with include_revisions query parameter
   def test_get_time_for_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?include_revisions=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                               @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?include_revisions=true&token={1}'.format(
-        ts.baseurl, ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['include_revisions' => true]),
+    assert_equal(@ts.get_times(Hash['include_revisions' => true]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with include_revisions false query parameter
   def test_get_time_for_include_revisions_false
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?include_revisions=false&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?include_revisions=false&token={1}'
-          .format(ts.baseurl, ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['include_revisions' => false]),
+    assert_equal(@ts.get_times(Hash['include_revisions' => false]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with include_deleted query parameter
-  def test_get_time_for_include_deleted # wokr on this
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/times?include_deleted=true&token={1}'.format(
-        ts.baseurl, ts.token)
+  def test_get_time_for_include_deleted
+    url = '%s/times?include_deleted=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                             @ts.instance_variable_get(:@token)]
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['include_deleted' => true]),
+    assert_equal(@ts.get_times(Hash['include_deleted' => true]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with include_revisions false query parameter
   def test_get_time_for_include_deleted_false
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/times?include_deleted=false&token={1}'.format(
-        ts.baseurl, ts.token)
+    # response = resp
+    # response.body = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?include_deleted=false&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                              @ts.instance_variable_get(:@token)]
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called with baseurl and correct parameter
-    assertEqual(ts.get_times(Hash['include_deleted' => false]),
+    assert_equal(@ts.get_times(Hash['include_deleted' => false]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with project and activity query parameters
   def test_get_time_for_proj_and_activity
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    # response = resp
+    # response.body = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times?activity=dev&project=gwm&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                 @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value=response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?activity=dev&project=gwm&token={1}'
-          .format(ts.baseurl, ts.token)
 
     # Test that requests.get was called with baseurl and correct parameters
     # Multiple parameters are sorted alphabetically
-    assertEqual(ts.get_times(Hash['project' => ['gwm'],
+    assert_equal(@ts.get_times(Hash['project' => ['gwm'],
                                   'activity' => ['dev']]),
                 [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with project and activity query parameters
   def test_get_time_for_activity_x3
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    token_string = '&token={}'.format(ts.token)
-
-    url = '{0}/times?activity=dev&activity=rev&activity=hd{1}'.format(
-        ts.baseurl, token_string)
+    # response = resp
+    # response.body = json.dump(Hash['this' => 'should be in a list'])
+    token_string = '&token=%s' % @ts.instance_variable_get(:@token)
+    url = '%s/times?activity=dev&activity=rev&activity=hd%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                     token_string]
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called with baseurl and correct parameters
     # Multiple parameters are sorted alphabetically
-    assert_equal(ts.get_times(Hash['activity' =>
+    assert_equal(@ts.get_times(Hash['activity' =>
                                     Array['dev', 'rev', 'hd']]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with uuid query parameter
   def test_get_time_with_uuid
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times/sadfasdg432?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                  @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/times/sadfasdg432?token={1}'.format(ts.baseurl,
-                                                   ts.token)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called with baseurl and correct parameter
-    assert_equal(ts.get_times(Hash['uuid' => 'sadfasdg432']),
+    assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432']),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with uuid and activity query parameters
   def test_get_time_with_uuid_and_activity
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times/sadfasdg432?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                    @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times/sadfasdg432?token={1}'.format(ts.baseurl,
-                                                   ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assert_equal(ts.get_times(Hash['uuid' => 'sadfasdg432',
+    assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
                                    'activity' => ['dev']]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with uuid and include_revisions query parameters
   def test_get_time_with_uuid_and_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/times/sadfasdg432?include_revisions=true&token={1}'.format(
-        ts.baseurl, ts.token)
+    url = '{0}/times/sadfasdg432?include_revisions=true&token={1}' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                           @ts.instance_variable_get(:@token)]
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called with baseurl and correct parameter
-    assert_equal(ts.get_times(Hash['uuid' => 'sadfasdg432',
+    assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
                                    'include_revisions' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with uuid and include_deleted query parameters
   def test_get_time_with_uuid_and_include_deleted
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/times/sadfasdg432?include_deleted=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                         @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times/sadfasdg432?include_deleted=true&token={1}'.format(
-        ts.baseurl, ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assert_equal(ts.get_times(Hash['uuid' => 'sadfasdg432',
+    assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
                                    'include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with uuid and include_deleted query parameters
   def test_get_time_with_uuid_include_deleted_and_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    # Please forgive me for this. I blame the PEP8 line length rule
+    # response = resp
+    # response.body = json.dump(Hash['this' => 'should be in a list'])
     endpoint = 'times'
     uuid = 'sadfasdg432'
-    token = 'token={}'.format(ts.token)
+    token = 'token=%s' % @ts.instance_variable_get(:@token)
     queries = 'include_deleted=true&include_revisions=true'
-    url = '{0}/{1}/{2}?{3}&{4}'.format(ts.baseurl, endpoint, uuid,
-                                       queries, token)
+    url = '%s/%s/%s?%s&%s' % Array[@ts.instance_variable_get(:@baseurl), endpoint, uuid,
+                                   queries, token]
+
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called with baseurl and correct parameter
-    assert_equal(ts.get_times(Hash['uuid' => 'sadfasdg432',
+    assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
                                    'include_revisions' => true,
                                    'include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_times with no parameters
   def test_get_all_times
-    response = resp
-    response.text = json.dump([Hash['this' => 'should be in a list']])
+    # response = resp
+    # response.body = json.dump([Hash['this' => 'should be in a list']])
+    url = '{0}/times?token={1}' % Array[@ts.instance_variable_get(:@baseurl),
+                                        @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*times.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/times?token={1}'.format(ts.baseurl,
-                                       ts.token)
 
     # Test that requests.get was called with baseurl and correct parameter
-    assert_equal(ts.get_times,
-                      [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
+    assert_equal(@ts.get_times,
+                 [Hash['this' => 'should be in a list']])
   end
 
   # Tests TimeSync.get_times with an invalid query parameter
   def test_get_times_bad_query
     # Should return the error
-    assert_equal(ts.get_times(Hash['bad' => ['query']]),
-                      [Hash[ts.error => 'invalid query: bad']])
+    assert_equal(@ts.get_times(Hash['bad' => ['query']]),
+                      [Hash[@ts.instance_variable_get(:@error) => 'invalid query: bad']])
   end
 
   # Tests TimeSync.get_projects
   def test_get_projects
-    response = resp
-    response.text = json.dump([Hash['this' => 'should be in a list']])
+    url = '%s/projects?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                           @ts.instance_variable_get(:@token)]
+    stub_request(:get, /.*projects.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/projects?token={1}'.format(ts.baseurl,
-                                          ts.token)
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_projects,
+    assert_equal(@ts.get_projects,
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_projects with slug
   def test_get_projects_slug
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '{0}/projects/gwm?token={1}' % Array[@ts.instance_variable_get(:@baseurl),
+                                               @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*projects.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/projects/gwm?token={1}'.format(ts.baseurl,
-                                              ts.token)
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_projects(Hash['slug' => 'gwm']),
+    assert_equal(@ts.get_projects(Hash['slug' => 'gwm']),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_projects with include_revisions query
   def test_get_projects_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/projects?include_revisions=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                  @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*projects.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/projects?include_revisions=true&token={1}'
-          .format(ts.baseurl, ts.token)
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_projects(Hash['include_revisions' => true]),
+    assert_equal(@ts.get_projects(Hash['include_revisions' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_projects with include_revisions query and slug
   def test_get_projects_slug_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/projects/gwm?include_revisions=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                      @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*projects.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/projects/gwm?include_revisions=true&token={1}'.format(
-        ts.baseurl, ts.token)
-
-    # Send it
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_projects(Hash['slug' => 'gwm',
+    assert_equal(@ts.get_projects(Hash['slug' => 'gwm',
                                       'include_revisions' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_projects with include_deleted query
   def test_get_projects_include_deleted
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    # response = resp
+    # response.body = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/projects?include_deleted=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
+    stub_request(:get, /.*projects.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    url = '{0}/projects?include_deleted=true&token={1}'.format(
-        ts.baseurl, ts.token)
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_projects(Hash['include_deleted' => true]),
+    assert_equal(@ts.get_projects(Hash['include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_projects with include_deleted
@@ -1177,23 +1071,20 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync.get_projects with
   # include_revisions and include_deleted queries
   def test_get_projects_include_deleted_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    token_string = '&token={}'.format(ts.token)
+    # response = resp
+    # response.body = json.dump(Hash['this' => 'should be in a list'])
+    token_string = '&token=%s' % @ts.instance_variable_get(:@token)
     endpoint = '/projects'
-    url = '{0}{1}?include_deleted=true&include_revisions=true{2}'.format(
-        ts.baseurl, endpoint, token_string)
+    url = '%s%s?include_deleted=true&include_revisions=true%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                       endpoint, token_string]
+
+    stub_request(:get, /.*projects.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Test that requests.get was called with correct parameters
-    assert_equal(ts.get_projects(Hash['include_revisions' => true,
+    assert_equal(@ts.get_projects(Hash['include_revisions' => true,
                                       'include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_activities
@@ -1213,8 +1104,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     url = '%s/activities/code?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
                                                 @ts.instance_variable_get(:@token)]
 
-    stub_request(:get, /.*activities.*/).
-      to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
+    stub_request(:get, /.*activities.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     assert_equal(@ts.get_activities(Hash['slug' => 'code']),
                  [Hash['this' => 'should be in a list']])
@@ -1222,167 +1113,129 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_activities with include_revisions query
   def test_get_activities_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/activities?include_revisions=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                  @ts.instance_variable_get(:@token)]
+    stub_request(:get, /.*activities.*/)
+    .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/activities?include_revisions=true&token={1}'.format(
-        ts.baseurl, ts.token)
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_activities(Hash['include_revisions' => true]),
+    assert_equal(@ts.get_activities(Hash['include_revisions' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_projects with include_revisions query and slug
   def test_get_activities_slug_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '{%s/activities/code?include_revisions=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                        @ts.instance_variable_get(:@token)]
+    stub_request(:get, /.*activities.*/)
+    .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
 
-    url = '{0}/activities/code?include_revisions=true&token={1}'.format(
-        ts.baseurl, ts.token)
-
-    # Test that requests.get was called correctly
-    assert_equal(ts.get_activities(Hash['slug' => 'code',
+    assert_equal(@ts.get_activities(Hash['slug' => 'code',
                                         'include_revisions' => true]),
                  [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_activities with include_deleted query
   def test_get_activities_include_deleted
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/activities?include_deleted=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                @ts.instance_variable_get(:@token)]
 
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/activities?include_deleted=true&token={1}'.format(
-        ts.baseurl, ts.token)
-
-    # Send it
+    stub_request(:get, /.*activities.*/)
+    .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
     # Test that requests.get was called correctly
-    assert_equal(ts.get_activities(Hash['include_deleted' => true]),
+    assert_equal(@ts.get_activities(Hash['include_deleted' => true]),
                       [Hash['this' => 'should be in a list']])
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_activities with
   # include_deleted query and slug, which is not allowed
-  def test_get_activities_include_deleted_with_slug
+  def test_get_activities_include_deleted_with_slug   # ERROR
     # Mock requests.get
-    requests.get = mock.Mock('requests.get')
+    # requests.get = mock.Mock('requests.get')
+
+    stub_request(:get)
+    # .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
     # Test that error message is returned, can't combine slug and
     # include_deleted
-    assert_equal(ts.get_activities(Hash['slug' => 'code',
+    assert_equal(@ts.get_activities(Hash['slug' => 'code',
                                         'include_deleted' => true]),
-                 [Hash[ts.error =>
+                 [Hash[@ts.error =>
                        'invalid combination => slug and include_deleted']])
   end
 
   # Tests TimeSync.get_activities with
   # include_revisions and include_deleted queries
   def test_get_activities_include_deleted_include_revisions
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    token_string = '&token={}'.format(ts.token)
+    token_string = '&token=%s' % @ts.instance_variable_get(:@token)
     endpoint = '/activities'
-    url = '{0}{1}?include_deleted=true&include_revisions=true{2}'.format(
-        ts.baseurl, endpoint, token_string)
+    url = '%s%s?include_deleted=true&include_revisions=true%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                                       endpoint, token_string]
+
+    stub_request(:get, /.*activities.*/)
+    .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
     # Send it
-    assert_equal(ts.get_activities(Hash['include_revisions' => true,
+    assert_equal(@ts.get_activities(Hash['include_revisions' => true,
                                         'include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
 
-    # Test that requests.get was called with correct parameters
-    requests.get.assert_called_with(url)
   end
 
   # Test that get_times returns error message when auth not set
-  def test_get_times_no_auth
-    ts.token = nil
-    assert_equal(ts.get_times,
-                 [Hash[ts.error => 'Not authenticated with TimeSync, \
-                                   call authenticate first']])
+  def test_get_times_no_auth # ERROR
+    @ts.instance_variable_set(:@token, 'nil')
+    assert_equal(@ts.get_times,
+                 [Hash[@ts.error => 'Not authenticated with TimeSync, call authenticate first']])
   end
 
   # Test that get_projects returns error message when auth not set
-  def test_get_projects_no_auth
-    ts.token = nil
-    assert_equal(ts.get_projects,
-                 [Hash[ts.error => 'Not authenticated with TimeSync, \
+  def test_get_projects_no_auth # ERROR
+    @ts.instance_variable_set(:@token, 'nil')
+    assert_equal(@ts.get_projects,
+                 [Hash[@ts.error => 'Not authenticated with TimeSync, \
                                     call authenticate first']])
   end
 
   # Test that get_activities returns error message when auth not set
   def test_get_activities_no_auth
-    ts.token = nil
-    assert_equal(ts.get_activities,
-                 [Hash[ts.error => 'Not authenticated with TimeSync, \
+    @ts.instance_variable_set(:@token, 'nil')
+    assert_equal(@ts.get_activities,
+                 [Hash[@ts.error => 'Not authenticated with TimeSync, \
                                    call authenticate first']])
   end
 
   # Tests TimeSync.get_users
   def test_get_users
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/users?token={1}'.format(ts.baseurl, ts.token)
+    # response = resp
+    # response.body = json.dump(Hash['this' => 'should be in a list'])
+    url = '%s/users?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                      @ts.instance_variable_get(:@token)]
+    stub_request(:get, url)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Send it
-    assert_equal(ts.get_users,
+    assert_equal(@ts.get_users,
                  [Hash['this' => 'should be in a list']])
-
-    # Test that requests.get was called correctly
-    requests.get.assert_called_with(url)
   end
 
   # Tests TimeSync.get_users with username
   def test_get_users_username
-    response = resp
-    response.text = json.dump(Hash['this' => 'should be in a list'])
-
-    # Mock requests.get
-    requests.get = mock.create_autospec(requests.get,
-                                        return_value = response)
-
-    url = '{0}/users/{1}?token={2}'.format(ts.baseurl,
-                                           'example-user',
-                                           ts.token)
+    url = '%s/users/%s?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                         'example-user', @ts.instance_variable_get(:@token)]
+    stub_request(:get, /.*users.*/)
+    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
     # Send it
-    assert_equal(ts.get_users('example-user'),
+    assert_equal(@ts.get_users('example-user'),
                  [Hash['this' => 'should be in a list']])
-
-    # Test that requests.get was called correctly
-    requests.get.assert_called_with(url)
   end
 
   # Test that get_users returns error message when auth not set
-  def test_get_users_no_auth
-    ts.token = nil
-    assert_equal(ts.get_users,
+  def test_get_users_no_auth # ERROR
+    @ts.instance_variable_set(:@token, 'nil')
+    assert_equal(@ts.get_users,
                  [Hash[ts.error => 'Not authenticated with TimeSync, \
                                     call authenticate first']])
   end
@@ -1415,7 +1268,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     response = resp
-    response.text = json_object
+    response.body = json_object
 
     assert_equal(ts._TimeSync__response_to_ruby(response),
                       ruby_object)
@@ -1485,7 +1338,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     response = resp
-    response.text = json_object
+    response.body = json_object
 
     assert_equal(ts._TimeSync__response_to_ruby(response),
                       ruby_object)
@@ -1494,8 +1347,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Check that __response_to_ruby returns correctly for delete_*G methods
   def test_response_to_ruby_empty_response
     response = resp
-    response.text = ''
-    response.status_code = 200
+    response.body = ''
+    response.code = 200
     assert_equal(ts._TimeSync__response_to_ruby(response),
                  Hash['status' => 200])
   end
@@ -1539,8 +1392,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17'
     ]
 
-    assert_equal(ts.update_time(time, 'uuid'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.update_time(time, 'uuid'),
+                 [Hash[@ts.error =>
                        'time object: duration cannot be negative']])
   end
 
@@ -1565,8 +1418,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    assert_equal(ts.create_time(time),
-                 [Hash[ts.error =>
+    assert_equal(@ts.create_time(time),
+                 [Hash[@ts.error =>
                        'time object: invalid duration string']])
   end
 
@@ -1583,7 +1436,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    assert_equal(ts.update_time(time, 'uuid'),
+    assert_equal(@ts.update_time(time, 'uuid'),
                  [Hash[ts.error => 'time object: invalid duration string']])
   end
 
@@ -1600,8 +1453,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    assert_equal(ts.create_time(time),
-                 [Hash[ts.error => 'time object: invalid \
+    assert_equal(@ts.create_time(time),
+                 [Hash[@ts.error => 'time object: invalid \
                                     duration string']])
   end
 
@@ -1618,7 +1471,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    assert_equal(ts.update_time(time, 'uuid'),
+    assert_equal(@ts.update_time(time, 'uuid'),
                  [Hash[ts.error => 'time object: invalid duration string']])
   end
 
@@ -1665,9 +1518,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ary.each do |perm|
       user_to_test = Hash[user]
       user_to_test[perm] = 'invalid'
-      assert_equal(ts.create_user(user_to_test),
-                   [Hash[ts.error => 'user object: {} must be true \
-                                      or false'.format(perm)]])
+      assert_equal(@ts.create_user(user_to_test),
+                   [Hash[@ts.error => 'user object: %s must be true \
+                                      or false' % perm]])
     end
   end
 
@@ -1687,6 +1540,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Mock requests.post so it doesn't actually post to TimeSync
     requests.post = mock.create_autospec(requests.post)
+    # stub_request(:post)
 
     ts.authenticate('example-user', 'password', 'password')
 
@@ -1698,7 +1552,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def test_authentication_return_success
     # Use this fake response object for mocking requests.post
     response = resp
-    response.text = json.dump(Hash['token' => 'sometoken'])
+    response.body = json.dump(Hash['token' => 'sometoken'])
 
     # Mock requests.post so it doesn't actually post to TimeSync
     requests.post = mock.create_autospec(requests.post,
@@ -1714,7 +1568,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def test_authentication_return_error
     # Use this fake response object for mocking requests.post
     response = resp
-    response.text = json.dump(Hash['status' => 401,
+    response.body = json.dump(Hash['status' => 401,
                                    'error' => 'Authentication failure',
                                    'text' => 'Invalid username or password'])
 
@@ -1782,7 +1636,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests authenticate method with no token in response
   def test_authentication_no_token_in_response
     response = resp
-    response.status_code = 502
+    response.code = 502
 
     # Mock requests.post so it doesn't actually post to TimeSync
     requests.post = mock.create_autospec(requests.post,
@@ -1811,7 +1665,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # getting a response that is not a JSON object
   def test_handle_other_connection_response
     response = resp
-    response.status_code = 502
+    response.code = 502
 
     assert_equal(ts._TimeSync__response_to_ruby(response),
                  Hash[ts.error => 'connection to TimeSync failed at \
@@ -2000,9 +1854,64 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test project_users method with a valid project object returned from TimeSync
   def test_project_users_valid
     project = 'rime'
-    response = resp
-    response.status_code = 200
-    response.text = json.dump(Hash[
+    # response.code = 200
+    # response.body = json.dump(Hash[
+    #     'uri' => 'https://github.com/osuosl/rimesync',
+    #     'name' => 'pymesync',
+    #     'slugs' => Array['rime', 'ps', 'rimesync'],
+    #     'uuid' => 'a034806c-00db-4fe1-8de8-514575f31bfb',
+    #     'revision' => 4,
+    #     'created_at' => '2014-07-17',
+    #     'deleted_at' => nil,
+    #     'updated_at' => '2014-07-20',
+    #     'users' => Hash[
+    #         'malcolm' => Hash['member' => true,
+    #                           'manager' => true,
+    #                           'spectator' => true],
+    #         'jayne' =>   Hash['member' => true,
+    #                           'manager' => false,
+    #                           'spectator' => false],
+    #         'kaylee' =>  Hash['member' => true,
+    #                           'manager' => false,
+    #                           'spectator' => false],
+    #         'zoe' =>     Hash['member' => true,
+    #                           'manager' => false,
+    #                           'spectator' => false],
+    #         'hoban' =>   Hash['member' => true,
+    #                           'manager' => false,
+    #                           'spectator' => false],
+    #         'simon' =>   Hash['member' => false,
+    #                           'manager' => false,
+    #                           'spectator' => true],
+    #         'river' =>   Hash['member' => false,
+    #                           'manager' => false,
+    #                           'spectator' => true],
+    #         'derrial' => Hash['member' => false,
+    #                           'manager' => false,
+    #                           'spectator' => true],
+    #         'inara' =>   Hash['member' => false,
+    #                           'manager' => false,
+    #                           'spectator' => true]
+    #     ]
+    # ])
+
+    expected_result = Hash[
+        'malcolm' => %w(member manager spectator),
+        'jayne' =>   Array['member'],
+        'kaylee' =>  Array['member'],
+        'zoe' =>     Array['member'],
+        'hoban' =>   Array['member'],
+        'simon' =>   Array['spectator'],
+        'river' =>   Array['spectator'],
+        'derrial' => Array['spectator'],
+        'inara' =>   Array['spectator']
+    ]
+
+    # Mock requests.get so it doesn't actually post to TimeSync
+    # requests.get = mock.create_autospec(requests.get, return_value = response)
+
+    stub_request(:get)
+    .to_return(:body => JSON.dump(Hash[
         'uri' => 'https://github.com/osuosl/rimesync',
         'name' => 'pymesync',
         'slugs' => Array['rime', 'ps', 'rimesync'],
@@ -2040,32 +1949,18 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                               'manager' => false,
                               'spectator' => true]
         ]
-    ])
+    ]))
 
-    expected_result = Hash[
-        'malcolm' => %w(member manager spectator),
-        'jayne' =>   Array['member'],
-        'kaylee' =>  Array['member'],
-        'zoe' =>     Array['member'],
-        'hoban' =>   Array['member'],
-        'simon' =>   Array['spectator'],
-        'river' =>   Array['spectator'],
-        'derrial' => Array['spectator'],
-        'inara' =>   Array['spectator']
-    ]
 
-    # Mock requests.get so it doesn't actually post to TimeSync
-    requests.get = mock.create_autospec(requests.get, return_value = response)
-
-    assert_equal(ts.project_users(project = project), expected_result)
+    assert_equal(@ts.project_users(project = project), expected_result)
   end
 
   # Test project_users method with an error object returned from TimeSync
   def test_project_users_error_response
     proj = 'rimes'
     response = resp
-    response.status_code = 404
-    response.text = json.dump(Hash[
+    response.code = 404
+    response.body = json.dump(Hash[
         'error' => 'Object not found',
         'text' => 'nilxistent project'
     ])
@@ -2074,7 +1969,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.get = mock.create_autospec(requests.get,
                                         return_value = response)
 
-    assert_equal(ts.project_users(project = proj),
+    assert_equal(@ts.project_users(project = proj),
                  Hash['error' => 'Object not found',
                       'text' => 'nilxistent project'])
   end
@@ -2082,21 +1977,20 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test project_users method with no project object
   # passed as a parameter, should return an error
   def test_project_users_no_project_parameter
-    assert_equal(ts.project_users,
-                 Hash[ts.error =>
-                      'Missing project slug, please include in method call'])
+    assert_equal(@ts.project_users,
+                 Hash[@ts.instance_variable_get(:@error) => 'Missing project slug, please include in method call'])
   end
 
   # Test that the trailing slash in the baseurl is removed
   def test_baseurl_with_trailing_slash
-    ts = TimeSync.new('http://ts.example.com/v1/')
-    assert_equal(ts.baseurl, 'http://ts.example.com/v1')
+    @ts = TimeSync.new('http://ts.example.com/v1/')
+    assert_equal(@ts.instance_variable_get(:@baseurl), 'http://ts.example.com/v1')
   end
 
   # Test that the trailing slash in the baseurl is removed
   def test_baseurl_without_trailing_slash
-    ts = TimeSync.new('http://ts.example.com/v1')
-    assert_equal(ts.baseurl, 'http://ts.example.com/v1')
+    @ts = TimeSync.new('http://ts.example.com/v1')
+    assert_equal(@ts.instance_variable_get(:@baseurl), 'http://ts.example.com/v1')
   end
 end
 

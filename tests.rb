@@ -1,10 +1,8 @@
 require 'test/unit'
-require 'http'
 require_relative 'rimesync'
 require 'json'
 require 'bcrypt'
 require 'base64'
-require 'parsr'
 require 'rest-client'
 require 'webmock/test_unit'
 
@@ -19,7 +17,7 @@ end
 class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def setup
     baseurl = 'http://ts.example.com/v0'
-    @ts = TimeSync.new(baseurl) # not working
+    @ts = TimeSync.new(baseurl)
     @ts.instance_variable_set(:@user, 'example-user')
     @ts.instance_variable_set(:@password, 'password')
     @ts.instance_variable_set(:@auth_type, 'password')
@@ -55,7 +53,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => time,
     ]
 
@@ -63,14 +61,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(time, nil, 'time', 'times')
+    ts.create_or_update(time, nil, 'time', 'times')
 
     # Test it
     requests.post.assert_called_with('http://ts.example.com/v1/times',
                                      json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for update time with valid data
+  # Tests TimeSync._TimeSync.create_or_update for update time with valid data
   def test_create_or_update_update_time_valid
     # Parameters to be sent to TimeSync
     time = Hash[
@@ -88,7 +86,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => time,
     ]
 
@@ -96,7 +94,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(time, uuid, 'time', 'times')
+    ts.create_or_update(time, uuid, 'time', 'times')
 
     # Test it
     requests.post
@@ -104,7 +102,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                         .format(uuid), json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for update time with one valid parameter
   def test_create_or_update_update_time_valid_less_fields
     # Parameters to be sent to TimeSync
@@ -117,7 +115,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => time,
     ]
 
@@ -125,7 +123,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(time, uuid, 'time', 'times', false)
+    ts.create_or_update(time, uuid, 'time', 'times', false)
 
     # Test it
     requests.post
@@ -133,7 +131,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                                 .format(uuid), json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create time with invalid field
   def test_create_or_update_create_time_invalid
     # Parameters to be sent to TimeSync
@@ -148,9 +146,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'bad' => 'field'
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(time, nil,
-                                                'time', 'times'),
-                 [Hash[ts.error => 'time object: invalid field: bad']])
+    assert_equal(@ts.create_or_update(time, nil, 'time', 'times'),
+                 Hash[@ts.instance_variable_get(:@error) => 'time object: invalid field: bad'])
   end
 
   def test_create_or_update_create_time_two_required_missing
@@ -163,14 +160,13 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17'
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(time, nil,
-                                                'time', 'times'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.create_or_update(time, nil, 'time', 'times'),
+                 [Hash[@ts.instance_variable_get(:@error) =>
                        'time object: missing required field(s): \
                         project, activities']])
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # to create time with missing required fields
   def test_create_or_update_create_time_each_required_missing
     # Parameters to be sent to TimeSync
@@ -185,28 +181,27 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     time_to_test = Hash[time]
 
     for key, value in time
-      del(time_to_test[key]) # will ot work
-      assert_equal(ts._TimeSync__create_or_update(
+      time_to_test.delete(key) # will ot work
+      assert_equal(@ts.create_or_update(
                      time_to_test, nil, 'time', 'times'),
-                   [Hash[ts.error => 'time object: missing required \
-                                     field(s): {}'.format(key)]])
+                   [Hash[@ts.instance_variable_get(:@error) => 'time object: missing required field(s): %s' % key]])
       time_to_test = Hash[time]
     end
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create time with incorrect parameter types
   def test_create_or_update_create_time_type_error
     # Parameters to be sent to TimeSync
     param_list = Array[1, 'hello', [1, 2, 3], nil, true, false, 1.234]
 
     param_list.each do |param|
-      assert_equal(ts._TimeSync__create_or_update(param, nil, 'time', 'times'),
-                   [Hash[ts.error => 'time object: must be ruby hash']])
+      assert_equal(@ts.create_or_update(param, nil, 'time', 'times'),
+                   Hash[@ts.instance_variable_get(:@error) => 'time object: must be ruby dictionary'])
     end
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for create user with valid data
+  # Tests TimeSync.create_or_update for create user with valid data
   def test_create_or_update_create_user_valid
     # Parameters to be sent to TimeSync
     user = Hash[
@@ -218,7 +213,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => user,
     ]
 
@@ -226,14 +221,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(user, nil, 'user', 'users')
+    ts.create_or_update(user, nil, 'user', 'users')
 
     # Test it
     requests.post.assert_called_with('http://ts.example.com/v1/users',
                                      json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for update user with valid data
+  # Tests TimeSync.create_or_update for update user with valid data
   def test_create_or_update_update_user_valid
     # Parameters to be sent to TimeSync
     user = Hash[
@@ -248,7 +243,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => user,
     ]
 
@@ -256,7 +251,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(user, username, 'user',
+    ts.create_or_update(user, username, 'user',
                                    'users', false)
 
     # Test it
@@ -265,7 +260,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for update user with one valid parameter
   def test_create_or_update_update_user_valid_less_fields
     # Parameters to be sent to TimeSync
@@ -278,7 +273,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => user,
     ]
 
@@ -286,7 +281,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(user, username, 'user',
+    ts.create_or_update(user, username, 'user',
                                    'users', false)
 
     # Test it
@@ -295,7 +290,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create user with invalid field
   def test_create_or_update_create_user_invalid
     # Parameters to be sent to TimeSync
@@ -307,14 +302,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'bad' => 'field'
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(user, nil,
+    assert_equal(ts.create_or_update(user, nil,
                                                 'user',
                                                 'users'),
                  [Hash[ts.error =>
                         'user object: invalid field: bad']])
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create user with missing required fields
   def test_create_or_update_create_user_two_required_missing
     # Parameters to be sent to TimeSync
@@ -323,14 +318,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'email' => 'example.user@example.com'
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(user, nil,
+    assert_equal(ts.create_or_update(user, nil,
                                                 'user',
                                                 'users'),
                  [Hash[ts.error => 'user object: missing required \
                                    field(s): username, password']])
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # to create user with missing required fields
   def test_create_or_update_create_user_each_required_missing
     # Parameters to be sent to TimeSync
@@ -343,7 +338,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     for key,value in user
       del(user_to_test[key])
-      assert_equal(ts._TimeSync__create_or_update(
+      assert_equal(ts.create_or_update(
                    user_to_test, nil, 'user', 'users'),
                    [Hash[ts.error => 'user object: missing required \
                                      field(s): {}'.format(key)]])
@@ -351,21 +346,20 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     end
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create user with incorrect parameter types
   def test_create_or_update_create_user_type_error
     # Parameters to be sent to TimeSync
     param_list = [1, 'hello', [1, 2, 3], nil, true, false, 1.234]
 
     param_list.each do |param|
-      assert_equal(ts._TimeSync__create_or_update(param, nil,
-                                                  'user', 'users'),
-                   [Hash[ts.error =>
-                         'user object: must be ruby hash']])
+      assert_equal(@ts.create_or_update(param, nil, 'user', 'users'),
+                   Hash[@ts.instance_variable_get(:@error) =>
+                        'user object: must be ruby dictionary'])
     end
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create project with valid data
   def test_create_or_update_create_project_valid
     # Parameters to be sent to TimeSync
@@ -383,7 +377,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-      'auth' => ts._TimeSync__token_auth,
+      'auth' => ts.token_auth,
       'object' => project,
     ]
 
@@ -391,7 +385,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(project, nil,
+    ts.create_or_update(project, nil,
                                    'project', 'projects')
 
     # Test it
@@ -399,7 +393,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                                      json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # update project with valid parameters
   def test_create_or_update_update_project_valid
     # Parameters to be sent to TimeSync
@@ -417,7 +411,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => project,
     ]
 
@@ -425,7 +419,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(project, 'slug',
+    ts.create_or_update(project, 'slug',
                                    'project', 'projects')
 
     # Test it
@@ -434,7 +428,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # update project with one valid parameter
   def test_create_or_update_update_project_valid_less_fields
     # Parameters to be sent to TimeSync
@@ -444,7 +438,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => project,
     ]
 
@@ -452,7 +446,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(project, 'slug', 'project',
+    ts.create_or_update(project, 'slug', 'project',
                                    'projects', false)
 
     # Test it
@@ -461,7 +455,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         json=content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # create project with invalid field
   def test_create_or_update_create_project_invalid
     # Parameters to be sent to TimeSync
@@ -478,14 +472,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'bad' => 'field'
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(project, nil,
+    assert_equal(@ts.create_or_update(project, nil,
                                                 'project',
                                                 'projects'),
-                 [Hash[ts.error =>
+                 [Hash[@ts.intance_variable_get(:@error) =>
                        'project object: invalid field: bad']])
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # create project with missing required fields
   def test_create_or_update_create_project_required_missing
     # Parameters to be sent to TimeSync
@@ -493,14 +487,13 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       'slugs' => %w(timesync time),
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(project, nil,
-                                                'project',
-                                                'project'),
-                 [Hash[ts.error => 'project object: missing required \
-                                   field(s): name']])
+    assert_equal(@ts.create_or_update(project, nil,
+                                      'project',
+                                      'project'),
+                 Hash[@ts.instance_variable_get(:@error) => 'project object: missing required field(s): name'])
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # create project with missing required fields
   def test_create_or_update_create_project_each_required_missing
     # Parameters to be sent to TimeSync
@@ -512,30 +505,29 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     project_to_test = Hash[project]
 
     for key, value in project
-      del(project_to_test[key])
-      assert_equal(ts._TimeSync__create_or_update(
+      project_to_test.delete(key)
+      assert_equal(@ts.create_or_update(
                         project_to_test, nil, 'project', 'projects'),
-                        [Hash[ts.error => 'project object: missing \
-                                          required field(s): {}'.format(key)]])
+                        [Hash[@ts.instance_variable_get(:@error) => 'project object: missing required field(s): %s' % key]])
       project_to_test = Hash[project]
     end
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # create project with incorrect parameter types
   def test_create_or_update_create_project_type_error
     # Parameters to be sent to TimeSync
     param_list = Array[1, 'hello', [1, 2, 3], nil, true, false, 1.234]
 
     param_list.each do |param|
-      assert_equal(ts._TimeSync__create_or_update(param, nil,
+      assert_equal(@ts.create_or_update(param, nil,
                                                   'project', 'projects'),
-                   [Hash[ts.error =>
-                          'project object: must be ruby hash']])
+                   Hash[@ts.instance_variable_get(:@error) =>
+                          'project object: must be ruby dictionary'])
     end
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # create activity with valid data
   def test_create_or_update_create_activity_valid
     # Parameters to be sent to TimeSync
@@ -546,7 +538,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-      'auth' => ts._TimeSync__token_auth,
+      'auth' => ts.token_auth,
       'object' => project
     ]
 
@@ -554,7 +546,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(project, nil,
+    ts.create_or_update(project, nil,
                                         'activity', 'activities')
 
     # Test it
@@ -562,7 +554,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                                      json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for update activity with valid parameters
   def test_create_or_update_update_activity_valid
     # Parameters to be sent to TimeSync
@@ -573,7 +565,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = {
-      'auth' => ts._TimeSync__token_auth,
+      'auth' => ts.token_auth,
       'object' => activity
     }
 
@@ -581,7 +573,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(activity, 'slug',
+    ts.create_or_update(activity, 'slug',
                                         'activity', 'activities')
 
     # Test it
@@ -590,7 +582,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for update activity with one valid parameter
   def test_create_or_update_update_activity_valid_less_fields
     # Parameters to be sent to TimeSync
@@ -600,7 +592,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts._TimeSync__token_auth,
+        'auth' => ts.token_auth,
         'object' => activity,
     ]
 
@@ -608,7 +600,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     requests.post = mock.create_autospec(requests.post)
 
     # Send it
-    ts._TimeSync__create_or_update(activity, 'slug', 'activity',
+    ts.create_or_update(activity, 'slug', 'activity',
                                         'activities', false)
 
     # Test it
@@ -617,7 +609,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         json = content)
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create activity with invalid field
   def test_create_or_update_create_activity_invalid
     # Parameters to be sent to TimeSync
@@ -627,14 +619,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'bad' => 'field'
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(activity, nil,
+    assert_equal(@ts.create_or_update(activity, nil,
                                                 'activity',
                                                 'activites'),
-                 [Hash[ts.error =>
-                        'activity object: invalid field: bad']])
+                 Hash[@ts.instance_variable_get(:@error) =>
+                        'activity object: invalid field: bad'])
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create activity with missing required fields
   def test_create_or_update_create_activity_required_missing
     # Parameters to be sent to TimeSync
@@ -642,14 +634,13 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'name' => 'Quality Assurance/Testing',
     ]
 
-    assert_equal(ts._TimeSync__create_or_update(activity, nil,
+    assert_equal(@ts.create_or_update(activity, nil,
                                                 'activity',
                                                 'activities'),
-                 [Hash[ts.error => 'activity object: missing \
-                                    required field(s): slug']])
+                 Hash[@ts.instance_variable_get(:@error) => 'activity object: missing required field(s): slug'])
   end
 
-  # Tests TimeSync._TimeSync__create_or_update
+  # Tests TimeSync.create_or_update
   # for create activity with missing required fields
   def test_create_or_update_create_activity_each_required_missing
     # Parameters to be sent to TimeSync
@@ -661,38 +652,52 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     activity_to_test = Hash[activity]
 
     for key, value in activity
-      del(activity_to_test[key])
-      assert_equal(ts._TimeSync__create_or_update(
+      activity_to_test.delete(key)
+      assert_equal(@ts.create_or_update(
                    activity_to_test, nil, 'activity', 'activities'),
-                   [Hash[ts.error => 'activity object: missing required \
-                                     field(s): {}'.format(key)]])
+                   [Hash[@ts.instance_variable_get(:@error) => 'activity object: missing required field(s): %s' % key]])
       activity_to_test = Hash[activity]
     end
   end
 
-  # Tests TimeSync._TimeSync__create_or_update for
+  # Tests TimeSync.create_or_update for
   # create activity with incorrect parameter types
   def test_create_or_update_create_activity_type_error
     # Parameters to be sent to TimeSync
     param_list = [1, 'hello', [1, 2, 3], nil, true, false, 1.234]
 
     param_list.each do |param|
-      assert_equal(ts._TimeSync__create_or_update(param,
-                                                  nil,
-                                                  'activity',
-                                                  'activities'),
-                   [Hash[ts.error => 'activity object: must be ruby hash']])
+      assert_equal(@ts.create_or_update(param, nil,
+                                        'activity',
+                                        'activities'),
+                   Hash[@ts.instance_variable_get(:@error) => 'activity object: must be ruby dictionary'])
 
     end
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
-  # def test_create_or_update_create_time_no_auth(self, m_resp_ruby):
-  # end
+  # Tests TimeSync.create_or_update for create time with no auth
+  def test_create_or_update_create_time_no_auth
+    # Parameters to be sent to TimeSync
+    time = Hash[
+        'duration' => 12,
+        'project' => 'ganeti-web-manager',
+        'user' => 'example-user',
+        'activities' => ['documenting'],
+        'notes' => 'Worked on docs',
+        'issue_uri' => 'https://github.com/',
+        'date_worked' => '2014-04-17',
+    ]
+
+    @ts.instance_variable_set(:@token, nil)
+
+    # Send it
+    assert_equal(@ts.create_or_update(time, nil, "time", "times"),
+                 Hash[@ts.instance_variable_get(:@error) => "Not authenticated with ""TimeSync, call authenticate first"])
+  end
 
 
   def test_create_or_update_create_project_no_auth
-  # Tests TimeSync._TimeSync__create_or_update for create project with no auth
+  # Tests TimeSync.create_or_update for create project with no auth
   # Parameters to be sent to TimeSync
   project = Hash[
       'uri' => 'https://code.osuosl.org/projects/timesync',
@@ -704,35 +709,94 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Send it
   assert_equal(@ts.create_or_update(project, nil, 'project', 'projects'),
-    Hash[@ts.instance_variable_get(:@error), 'Not authenticated with ""TimeSync, call authenticate first'])
+    Hash[@ts.instance_variable_get(:@error), 'Not authenticated with TimeSync, call authenticate first'])
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
-  # def test_create_or_update_create_activity_no_auth(self, m_resp_ruby):
-  # end
 
-  # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
-  # def test_create_or_update_update_time_no_auth(self, m_resp_ruby):
-  # end
+  # Tests TimeSync.create_or_update for create activity with no auth
+  def test_create_or_update_create_activity_no_auth
+    # Parameters to be sent to TimeSync
+    activity = Hash[
+        'name' => 'Quality Assurance/Testing',
+        'slug' => 'qa',
+    ]
 
-  # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
-  # def test_create_or_update_update_project_no_auth(self, m_resp_ruby):
-  # end
+    @ts.instance_variable_set(:@token, nil)
 
-  # @patch('rimesync.TimeSync._TimeSync__response_to_ruby')
-  # def test_create_or_update_update_activity_no_auth(self, m_resp_ruby):
-  # end
+    # Send it
+    assert_equal(@ts.create_or_update(activity, nil, "activity", "activities"),
+                      Hash[@ts.instance_variable_get(:@error) => "Not authenticated with ""TimeSync, call authenticate first"])
 
-  # Tests TimeSync._TimeSync__auth function
+  end
+
+
+  # Tests TimeSync._TimeSync__create_or_update for update time with no auth
+  def test_create_or_update_update_time_no_auth
+    # Parameters to be sent to TimeSync
+    time = Hash[
+        'duration' => 12,
+        'project' => 'ganeti-web-manager',
+        'user' => 'example-user',
+        'activities' => ['documenting'],
+        'notes' => 'Worked on docs',
+        'issue_uri' => 'https://github.com/',
+        'date_worked' => '2014-04-17',
+    ]
+
+    @ts.instance_variable_set(:@token, nil)
+
+    # Send it
+    assert_equal(@ts.create_or_update(time, nil, "time", "times",
+                                      false),
+                      Hash[@ts.instance_variable_get(:@error) => "Not authenticated with ""TimeSync, call authenticate first"])
+  end
+
+
+  # Tests TimeSync._TimeSync__create_or_update for update project with no auth
+  def test_create_or_update_update_project_no_auth
+    # Parameters to be sent to TimeSync
+    project = Hash[
+        'uri' => 'https://code.osuosl.org/projects/timesync',
+        'name' => 'TimeSync API',
+        'slugs' => ['timesync', 'time'],
+    ]
+
+    @ts.instance_variable_set(:@token, nil)
+
+    # Send it
+    assert_equal(@ts.create_or_update(project, nil, "project", "project",
+                                      false),
+                Hash[@ts.instance_variable_get(:@error) => "Not authenticated with ""TimeSync, call authenticate first"])
+  end
+
+
+  # Tests TimeSync._TimeSync__create_or_update for update activity with no auth
+  def test_create_or_update_update_activity_no_auth
+    # Parameters to be sent to TimeSync
+    activity = Hash[
+        'name' => 'Quality Assurance/Testing',
+        'slug' => 'qa',
+    ]
+
+    @ts.instance_variable_set(:@token, nil)
+
+    # Send it
+    assert_equal(@ts.create_or_update(activity, nil, "activity", "activities",
+                                     false),
+                Hash[@ts.instance_variable_get(:@error) => "Not authenticated with ""TimeSync, call authenticate first"])
+  end
+
+
+  # Tests TimeSync.auth function
   def test_auth
-    # Create auth block to test _auth
+    # Create auth block to test auth
     auth = Hash[
           'type' => 'password',
           'username' => 'example-user',
           'password' => 'password'
           ]
 
-    assert_equal(ts._TimeSync__auth, auth)
+    assert_equal(@ts.auth, auth)
   end
 
   # Tests TimeSync.get_times with username query parameter
@@ -744,7 +808,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
 
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['user' => [@ts.instance_variable_get(:@user)]]),
                 [Hash['this' => 'should be in a list']])
   end
@@ -757,8 +820,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['project' => ['gwm']]),
                 [Hash['this' => 'should be in a list']])
   end
@@ -771,8 +832,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['activity' => ['dev']]),
                 [Hash['this' => 'should be in a list']])
   end
@@ -780,13 +839,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync.get_times with start date query parameter
   def test_get_time_for_start_date
     url = '%s/times?start=2015-07-23&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                         @ts.instance_variable_get(:@token)]
+                                                       @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['start' => ['2015-07-23']]),
                 [Hash['this' => 'should be in a list']])
   end
@@ -794,7 +851,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync.get_times with end date query parameter
   def test_get_time_for_end_date
     url = '%s/times?end=2015-07-23&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                       @ts.instance_variable_get(:@token)]
+                                                     @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
@@ -806,13 +863,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync.get_times with include_revisions query parameter
   def test_get_time_for_include_revisions
     url = '%s/times?include_revisions=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                               @ts.instance_variable_get(:@token)]
+                                                             @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['include_revisions' => true]),
                 [Hash['this' => 'should be in a list']])
   end
@@ -820,13 +875,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync.get_times with include_revisions false query parameter
   def test_get_time_for_include_revisions_false
     url = '%s/times?include_revisions=false&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                                @ts.instance_variable_get(:@token)]
+                                                              @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['include_revisions' => false]),
                 [Hash['this' => 'should be in a list']])
   end
@@ -834,59 +887,46 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync.get_times with include_deleted query parameter
   def test_get_time_for_include_deleted
     url = '%s/times?include_deleted=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                             @ts.instance_variable_get(:@token)]
+                                                           @ts.instance_variable_get(:@token)]
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['include_deleted' => true]),
                 [Hash['this' => 'should be in a list']])
   end
 
   # Tests TimeSync.get_times with include_revisions false query parameter
   def test_get_time_for_include_deleted_false
-    # response = resp
-    # response.body = json.dump(Hash['this' => 'should be in a list'])
     url = '%s/times?include_deleted=false&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                              @ts.instance_variable_get(:@token)]
+                                                            @ts.instance_variable_get(:@token)]
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['include_deleted' => false]),
                 [Hash['this' => 'should be in a list']])
   end
 
   # Tests TimeSync.get_times with project and activity query parameters
   def test_get_time_for_proj_and_activity
-    # response = resp
-    # response.body = json.dump(Hash['this' => 'should be in a list'])
     url = '%s/times?activity=dev&project=gwm&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                                 @ts.instance_variable_get(:@token)]
+                                                               @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameters
-    # Multiple parameters are sorted alphabetically
     assert_equal(@ts.get_times(Hash['project' => ['gwm'],
-                                  'activity' => ['dev']]),
+                                    'activity' => ['dev']]),
                 [Hash['this' => 'should be in a list']])
   end
 
   # Tests TimeSync.get_times with project and activity query parameters
   def test_get_time_for_activity_x3
-    # response = resp
-    # response.body = json.dump(Hash['this' => 'should be in a list'])
     token_string = '&token=%s' % @ts.instance_variable_get(:@token)
     url = '%s/times?activity=dev&activity=rev&activity=hd%s' % Array[@ts.instance_variable_get(:@baseurl),
                                                                      token_string]
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called with baseurl and correct parameters
-    # Multiple parameters are sorted alphabetically
     assert_equal(@ts.get_times(Hash['activity' =>
                                     Array['dev', 'rev', 'hd']]),
                  [Hash['this' => 'should be in a list']])
@@ -900,7 +940,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432']),
                  [Hash['this' => 'should be in a list']])
   end
@@ -913,8 +952,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
                                    'activity' => ['dev']]),
                  [Hash['this' => 'should be in a list']])
@@ -927,7 +964,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
                                    'include_revisions' => true]),
                  [Hash['this' => 'should be in a list']])
@@ -936,13 +972,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests TimeSync.get_times with uuid and include_deleted query parameters
   def test_get_time_with_uuid_and_include_deleted
     url = '%s/times/sadfasdg432?include_deleted=true&token=%s' % Array[@ts.instance_variable_get(:@baseurl),
-                                                                         @ts.instance_variable_get(:@token)]
+                                                                       @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
                                    'include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
@@ -950,8 +984,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_times with uuid and include_deleted query parameters
   def test_get_time_with_uuid_include_deleted_and_revisions
-    # response = resp
-    # response.body = json.dump(Hash['this' => 'should be in a list'])
     endpoint = 'times'
     uuid = 'sadfasdg432'
     token = 'token=%s' % @ts.instance_variable_get(:@token)
@@ -962,25 +994,20 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times(Hash['uuid' => 'sadfasdg432',
-                                   'include_revisions' => true,
-                                   'include_deleted' => true]),
+                                    'include_revisions' => true,
+                                    'include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
   end
 
   # Tests TimeSync.get_times with no parameters
   def test_get_all_times
-    # response = resp
-    # response.body = json.dump([Hash['this' => 'should be in a list']])
-    url = '{0}/times?token={1}' % Array[@ts.instance_variable_get(:@baseurl),
+    url = '%s/times?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
                                         @ts.instance_variable_get(:@token)]
 
     stub_request(:get, /.*times.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-
-    # Test that requests.get was called with baseurl and correct parameter
     assert_equal(@ts.get_times,
                  [Hash['this' => 'should be in a list']])
   end
@@ -989,7 +1016,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def test_get_times_bad_query
     # Should return the error
     assert_equal(@ts.get_times(Hash['bad' => ['query']]),
-                      [Hash[@ts.instance_variable_get(:@error) => 'invalid query: bad']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'invalid query: bad']])
   end
 
   # Tests TimeSync.get_projects
@@ -1081,7 +1108,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*projects.*/)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called with correct parameters
     assert_equal(@ts.get_projects(Hash['include_revisions' => true,
                                       'include_deleted' => true]),
                  [Hash['this' => 'should be in a list']])
@@ -1089,12 +1115,12 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_activities
   def test_get_activities
-    url = '%s/activities?token=%s' % Array[@ts.instance_variable_get(:@baseurl), @ts.instance_variable_get(:@token)]
+    url = '%s/activities?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                           @ts.instance_variable_get(:@token)]
 
     stub_request(:get, url)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
-    # Test that requests.get was called correctly
     assert_equal(@ts.get_activities,
                  [Hash['this' => 'should be in a list']])
   end
@@ -1143,7 +1169,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:get, /.*activities.*/)
     .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
-    # Test that requests.get was called correctly
     assert_equal(@ts.get_activities(Hash['include_deleted' => true]),
                       [Hash['this' => 'should be in a list']])
   end
@@ -1152,7 +1177,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # include_deleted query and slug, which is not allowed
   def test_get_activities_include_deleted_with_slug   # ERROR
     # Mock requests.get
-    # requests.get = mock.Mock('requests.get')
+    requests.get = mock.Mock('requests.get')
 
     stub_request(:get)
     # .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
@@ -1240,7 +1265,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                                     call authenticate first']])
   end
 
-  # Test that TimeSync._TimeSync__response_to_ruby
+  # Test that TimeSync.response_to_ruby
   # converts a json object to a  list of object
   def test_response_to_ruby_single_object
     json_object = Hash[
@@ -1270,11 +1295,10 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     response = resp
     response.body = json_object
 
-    assert_equal(ts._TimeSync__response_to_ruby(response),
-                      ruby_object)
+    assert_equal(@ts.response_to_ruby(response), ruby_object)
   end
 
-  # Test that TimeSync._TimeSync__response_to_ruby
+  # Test that TimeSync.response_to_ruby
   # converts a json list of objects to a ruby list of objects
   def test_response_to_ruby_list_of_object
     json_object = Array[
@@ -1340,8 +1364,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     response = resp
     response.body = json_object
 
-    assert_equal(ts._TimeSync__response_to_ruby(response),
-                      ruby_object)
+    assert_equal(ts.response_to_ruby(response), ruby_object)
   end
 
   # Check that __response_to_ruby returns correctly for delete_*G methods
@@ -1349,15 +1372,30 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     response = resp
     response.body = ''
     response.code = 200
-    assert_equal(ts._TimeSync__response_to_ruby(response),
+    assert_equal(ts.response_to_ruby(response),
                  Hash['status' => 200])
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
-  # def test_create_time(self, mock_create_or_update):
-  # end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # Tests that TimeSync.create_time calls _create_or_update with correct parameters
+  def test_create_time
+    time = Hash[
+        'duration': 12,
+        'project': 'ganeti-web-manager',
+        'user': 'example-user',
+        'activities': ['documenting'],
+        'notes': 'Worked on docs',
+        'issue_uri': 'https://github.com/',
+        'date_worked': '2014-04-17',
+    ]
+
+    @ts.create_time(time)
+
+    # mock_create_or_update.assert_called_with(time, None, "time", "times")
+  end
+
+
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_update_time(self, mock_create_or_update):
   # end
 
@@ -1374,9 +1412,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17'
     ]
 
-    assert_equal(ts.create_time(time),
-                 [Hash[ts.error =>
-                       'time object: duration cannot be negative']])
+    assert_equal(@ts.create_time(time),
+                 Hash[@ts.instance_variable_get(:@error) =>
+                       'time object: duration cannot be negative'])
   end
 
   # Tests that TimeSync.update_time will return an error
@@ -1393,15 +1431,15 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     assert_equal(@ts.update_time(time, 'uuid'),
-                 [Hash[@ts.error =>
-                       'time object: duration cannot be negative']])
+                 Hash[@ts.instance_variable_get(:@error) =>
+                       'time object: duration cannot be negative'])
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_create_time_with_string_duration(self, mock_create_or_update):
   # end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_update_time_with_string_duration(self, mock_create_or_update):
   # end
 
@@ -1419,7 +1457,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     assert_equal(@ts.create_time(time),
-                 [Hash[@ts.error =>
+                 [Hash[@ts.instance_variable_get(:@error) =>
                        'time object: invalid duration string']])
   end
 
@@ -1437,7 +1475,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     assert_equal(@ts.update_time(time, 'uuid'),
-                 [Hash[ts.error => 'time object: invalid duration string']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'time object: invalid duration string']])
   end
 
   # Tests that TimeSync.create_time will fail
@@ -1454,8 +1492,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     assert_equal(@ts.create_time(time),
-                 [Hash[@ts.error => 'time object: invalid \
-                                    duration string']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'time object: invalid duration string']])
   end
 
   # Tests that TimeSync.update_time will fail
@@ -1472,30 +1509,30 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     assert_equal(@ts.update_time(time, 'uuid'),
-                 [Hash[ts.error => 'time object: invalid duration string']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'time object: invalid duration string']])
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_create_project(self, mock_create_or_update):
   # end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_update_project(self, mock_create_or_update):
   # end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_create_activity(self, mock_create_or_update):
   # end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_update_activity(self, mock_create_or_update):
   # end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_create_user(self, mock_create_or_update):
   # end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_create_user_valid_perms(self, mock_create_or_update):
   # end
 
@@ -1519,12 +1556,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       user_to_test = Hash[user]
       user_to_test[perm] = 'invalid'
       assert_equal(@ts.create_user(user_to_test),
-                   [Hash[@ts.error => 'user object: %s must be true \
-                                      or false' % perm]])
+                   [Hash[@ts.instance_variable_get(:@error) => 'user object: %s must be true or false' % perm]])
     end
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__create_or_update')
+  # @patch('rimesync.TimeSync.create_or_update')
   # def test_update_user(self, mock_create_or_update):
   # end
 
@@ -1586,51 +1622,51 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests authenticate method with no username in call
   def test_authentication_no_username
-    assert_equal(ts.authenticate(password = 'password', auth_type = 'password'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.authenticate(password = 'password', auth_type = 'password'),
+                 [Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username; please add to method call']])
   end
 
   # Tests authenticate method with no password in call
   def test_authentication_no_password
-    assert_equal(ts.authenticate(username = 'username', auth_type = 'password'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.authenticate(username = 'username', auth_type = 'password'),
+                 [Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password; please add to method call']])
   end
 
   # Tests authenticate method with no auth_type in call
   def test_authentication_no_auth_type
-    assert_equal(ts.authenticate(password = 'password', username = 'username'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.authenticate(password = 'password', username = 'username'),
+                 [Hash[@ts.instance_variable_get(:@error) =>
                   'Missing auth_type; please add to method call']])
   end
 
   # Tests authenticate method with no username or password in call
   def test_authentication_no_username_or_password
-    assert_equal(ts.authenticate(auth_type = 'password'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.authenticate(auth_type = 'password'),
+                 [Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, password; please add to method call']])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_username_or_auth_type
-    assert_equal(ts.authenticate(password = 'password'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.authenticate(password = 'password'),
+                 [Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, auth_type; please add to method call']])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_password_or_auth_type
-    assert_equal(ts.authenticate(username = 'username'),
-                 [Hash[ts.error =>
+    assert_equal(@ts.authenticate(username = 'username'),
+                 [Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password, auth_type; please add to method call']])
   end
 
   # Tests authenticate method with no arguments in call
   def test_authentication_no_arguments
-    assert_equal(ts.authenticate,
-                 [Hash[ts.error => 'Missing username, password, auth_type; \
-                                    please add to method call']])
+    assert_equal(@ts.authenticate,
+                 [Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing username, password, auth_type; please add to method call']])
   end
 
   # Tests authenticate method with no token in response
@@ -1651,13 +1687,13 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test internal local_auth_error method with token
   def test_local_auth_error_with_token
-    assert_nil(ts._TimeSync__local_auth_error)
+    assert_nil(@ts.local_auth_error)
   end
 
   # Test internal local_auth_error method with no token
   def test_local_auth_error_no_token
-    ts.token = nil
-    assert_equal(ts._TimeSync__local_auth_error,
+    @ts.instance_variable_set(:@token, nil)
+    assert_equal(@ts.local_auth_error,
                  'Not authenticated with TimeSync, call authenticate first')
   end
 
@@ -1667,7 +1703,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     response = resp
     response.code = 502
 
-    assert_equal(ts._TimeSync__response_to_ruby(response),
+    assert_equal(ts.response_to_ruby(response),
                  Hash[ts.error => 'connection to TimeSync failed at \
                                    baseurl http://ts.example.com/v1 - response \
                                    status was 502'])
@@ -1675,114 +1711,107 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that _delete_object calls requests.delete with the correct url
   def test_delete_object_time
-    requests.delete = mock.create_autospec(requests.delete)
-    url = '{0}/times/abcd-3453-3de3-99sh?token={1}'.format(ts.baseurl,
-                                                           ts.token)
-    ts._TimeSync__delete_object('times', 'abcd-3453-3de3-99sh')
-    requests.delete.assert_called_with(url)
+    url = '%s/times/abcd-3453-3de3-99sh?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                          @ts.instance_variable_get(:@token)]
+    stub_request(:delete, url)
+    @ts.delete_object('times', 'abcd-3453-3de3-99sh')
   end
 
   # Test that _delete_object calls requests.delete with the correct url
   def test_delete_object_project
-    requests.delete = mock.create_autospec(requests.delete)
-    url = '{0}/projects/ts?token={1}'.format(ts.baseurl,
-                                             ts.token)
-    ts._TimeSync__delete_object('projects', 'ts')
-    requests.delete.assert_called_with(url)
+    url = '%s/projects/ts?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                              @ts.instance_variable_get(:@token)]
+    # requests.delete = mock.create_autospec(requests.delete)
+    stub_request(:delete, url)
+    @ts.delete_object('projects', 'ts')
   end
 
   # Test that _delete_object calls requests.delete with the correct url
   def test_delete_object_activity
-    requests.delete = mock.create_autospec(requests.delete)
-    url = '{0}/activities/code?token={1}'.format(ts.baseurl,
-                                                 ts.token)
-    ts._TimeSync__delete_object('activities', 'code')
-    requests.delete.assert_called_with(url)
+    url = '%s/activities/code?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                  @ts.instance_variable_get(:@token)]
+    stub_request(:delete, url)
+    @ts.delete_object('activities', 'code')
   end
 
   # Test that _delete_object calls requests.delete with the correct url
   def test_delete_object_user
-    requests.delete = mock.create_autospec(requests.delete)
-    url = '{0}/users/example-user?token={1}'.format(ts.baseurl,
-                                                    ts.token)
-    ts._TimeSync__delete_object('users', 'example-user')
-    requests.delete.assert_called_with(url)
+    url = '%s/users/example-user?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
+                                                     @ts.instance_variable_get(:@token)]
+    stub_request(:delete, url)
+    @ts.delete_object('users', 'example-user')
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__delete_object')
+  # @patch('rimesync.TimeSync.delete_object')
   # def test_delete_time(self, m_delete_object):
   # end
 
   # Test that delete_time returns proper error on authentication failure
   def test_delete_time_no_auth
-    ts.token = nil
-    assert_equal(ts.delete_time('abcd-3453-3de3-99sh'),
-                 [Hash['rimesync error' => 'Not authenticated with TimeSync, \
-                       call authenticate first']])
+    @ts.instance_variable_set(:@token, nil)
+    assert_equal(@ts.delete_time('abcd-3453-3de3-99sh'),
+                 Hash['rimesync error' => 'Not authenticated with TimeSync, call authenticate first'])
   end
 
   # Test that delete_time returns proper error when uuid not provided
   def test_delete_time_no_uuid
-    assert_equal(ts.delete_time,
-                 [Hash['rimesync error' =>
-                       'missing uuid; please add to method call']])
+    assert_equal(@ts.delete_time,
+                 Hash['rimesync error' =>
+                      'missing uuid; please add to method call'])
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__delete_object')
+  # @patch('rimesync.TimeSync.delete_object')
   # def test_delete_project(self, m_delete_object):
   # end
 
   # Test that delete_project returns proper error on authentication failure
   def test_delete_project_no_auth
-    ts.token = nil
-    assert_equal(ts.delete_project('ts'),
-                 [Hash['rimesync error' => 'Not authenticated with TimeSync, \
-                       call authenticate first']])
+    @ts.instance_variable_set(:@token, nil)
+    assert_equal(@ts.delete_project('ts'),
+                 Hash['rimesync error' => 'Not authenticated with TimeSync, call authenticate first'])
   end
 
   # Test that delete_project returns proper error when slug not provided
   def test_delete_project_no_slug
-    assert_equal(ts.delete_project,
-                 [Hash['rimesync error' =>
-                       'missing slug; please add to method call']])
+    assert_equal(@ts.delete_project,
+                 Hash['rimesync error' =>
+                      'missing slug; please add to method call'])
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__delete_object')
+  # @patch('rimesync.TimeSync.delete_object')
   # def test_delete_activity(self, m_delete_object):
   # end
 
   # Test that delete_activity returns proper error on authentication failure
   def test_delete_activity_no_auth
-    ts.token = nil
-    assert_equal(ts.delete_activity('code'),
-                 [Hash['rimesync error' => 'Not authenticated with TimeSync, \
-                       call authenticate first']])
+    @ts.instance_variable_set(:@token, nil)
+    assert_equal(@ts.delete_activity('code'),
+                 Hash['rimesync error' => 'Not authenticated with TimeSync, call authenticate first'])
   end
 
   # Test that delete_activity returns proper error when slug not provided
   def test_delete_activity_no_slug
-    assert_equal(ts.delete_activity,
-                 [Hash['rimesync error' =>
-                       'missing slug; please add to method call']])
+    assert_equal(@ts.delete_activity,
+                 Hash['rimesync error' =>
+                       'missing slug; please add to method call'])
   end
 
-  # @patch('rimesync.TimeSync._TimeSync__delete_object')
+  # @patch('rimesync.TimeSync.delete_object')
   # def test_delete_user(self, m_delete_object):
   # end
 
   # Test that delete_user returns proper error on authentication failure
   def test_delete_user_no_auth
-    ts.token = nil
-    assert_equal(ts.delete_user('example-user'),
-                 [Hash['rimesync error' => 'Not authenticated with TimeSync, \
-                                            call authenticate first']])
+    @ts.instance_variable_set(:@token, nil)
+    assert_equal(@ts.delete_user('example-user'),
+                 Hash['rimesync error' => 'Not authenticated with TimeSync, call authenticate first'])
   end
 
   # Test that delete_user returns proper error when username not provided
   def test_delete_user_no_username
-    assert_equal(ts.delete_user,
-                 [Hash['rimesync error' =>
-                       'missing username; please add to method call']])
+    assert_equal(@ts.delete_user,
+                 Hash['rimesync error' =>
+                       'missing username; please add to method call'])
   end
 
   # Test that token_expiration_time returns valid date from a valid token
@@ -1805,17 +1834,16 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that token_expiration_time returns correct from an invalid token
   def test_token_expiration_invalid
-    assert_equal(ts.token_expiration_time,
-                 [Hash[ts.error => 'improperly encoded token']])
+    assert_equal(@ts.token_expiration_time,
+                 Hash[@ts.instance_variable_get(:@error) => 'improperly encoded token'])
   end
 
   # Test that token_expiration_time returns correct error
   # when user is not authenticated
   def test_token_expiration_no_auth
-    ts.token = nil
-    assert_equal(ts.token_expiration_time,
-                 [Hash[ts.error => 'Not authenticated with TimeSync, \
-                                   call authenticate first']])
+    @ts.instance_variable_set(:@token, nil)
+    assert_equal(@ts.token_expiration_time,
+                 Hash[@ts.instance_variable_get(:@error) => 'Not authenticated with TimeSync, call authenticate first'])
   end
 
   # Tests that when a string duration is entered, it is converted to an integer
@@ -1830,7 +1858,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    assert_equal(ts._TimeSync__duration_to_seconds(time['duration']), 12_600)
+    assert_equal(@ts.duration_to_seconds(time['duration']), 12_600)
   end
 
   # rubocop:disable MethodLength
@@ -1847,8 +1875,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    assert_equal(ts._TimeSync__duration_to_seconds(time['duration']),
-                 [Hash[ts.error => 'time object: invalid duration string']])
+    assert_equal(@ts.duration_to_seconds(time['duration']),
+                 [Hash[@ts.instance_variable_get(:@error) => 'time object: invalid duration string']])
   end
 
   # Test project_users method with a valid project object returned from TimeSync
@@ -1978,7 +2006,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # passed as a parameter, should return an error
   def test_project_users_no_project_parameter
     assert_equal(@ts.project_users,
-                 Hash[@ts.instance_variable_get(:@error) => 'Missing project slug, please include in method call'])
+                 Hash[@ts.instance_variable_get(:@error) =>
+                      'Missing project slug, please include in method call'])
   end
 
   # Test that the trailing slash in the baseurl is removed
@@ -1993,5 +2022,3 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     assert_equal(@ts.instance_variable_get(:@baseurl), 'http://ts.example.com/v1')
   end
 end
-
-# main

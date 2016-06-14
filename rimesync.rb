@@ -109,7 +109,7 @@ class TimeSync # :nodoc:
     @auth_type = auth_type
 
     # Create the auth block to send to the login endpoint
-    auth_hash = Hash['auth' => auth].to_json # not sure about this?
+    auth_hash = Hash['auth' => auth].to_json
 
     # Construct the url with the login endpoint
     url = '%s/login' % Array[@baseurl] # not sure about this?
@@ -380,7 +380,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[@error => e.response]]
+      return [Hash[@error => e]]
     end
   end
 
@@ -454,7 +454,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[@error => e.response]]
+      return [Hash[@error => e]]
     end
   end
 
@@ -528,7 +528,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[@error => e.response]]
+      return [Hash[@error => e]]
     end
   end
 
@@ -572,7 +572,7 @@ class TimeSync # :nodoc:
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
-      return [Hash[@error => e.response]]
+      return [Hash[@error => e]]
     end
   end
 
@@ -709,8 +709,7 @@ class TimeSync # :nodoc:
 
     # Check that a project slug was passed
     unless project
-      return Hash[@error => 'Missing project slug, please \
-        include in method call']
+      return Hash[@error => 'Missing project slug, please include in method call']
     end
 
     # Construct query url
@@ -727,7 +726,7 @@ class TimeSync # :nodoc:
       project_object = response_to_ruby(response)
     rescue => e
       # Request Error
-      return Hash[@error => e.response]
+      return Hash[@error => e]
     end
 
     # Create the user dict to return
@@ -775,8 +774,7 @@ class TimeSync # :nodoc:
   def local_auth_error
     # Checks that token is set.
     # Returns error if not set, otherwise returns nil
-    return (@token ? nil : ('Not authenticated with TimeSync,\
-            call authenticate first'))
+    return (@token ? nil : ('Not authenticated with TimeSync, call authenticate first'))
   end
 
   def response_to_ruby(response)
@@ -910,8 +908,8 @@ class TimeSync # :nodoc:
       end
       # Remove field from copied list if the field is in required
       if @required_params[object_name].include? key
-        # puts missing_list.index(key)
-        missing_list.delete_at(missing_list.index(key)) # error
+        puts "hi"
+        missing_list.delete(key)
       end
     end
 
@@ -942,14 +940,15 @@ class TimeSync # :nodoc:
     end
 
     # Check that object contains required fields and no bad fields
-    @field_error = get_field_errors(object_fields, object_name, create_object)
+    field_error = get_field_errors(object_fields, object_name, create_object)
 
-    if @field_error
-      return Hash[@error => @field_error]
+    if field_error
+      return Hash[@error => field_error]
     end
 
     # Since this is a POST request, we need an auth and object objects
-    @values = Hash['auth' => token_auth, 'object' => object_fields]
+    auth_hash = Hash['auth' => token_auth, 'object' => object_fields].to_json
+
 
     # Reformat the identifier with the leading '/' so it can be added to
     # the url. Do this here instead of the url assignment below so we can
@@ -960,20 +959,19 @@ class TimeSync # :nodoc:
     @url = '%s/%s%s' % Array[@baseurl, endpoint, identifier]
 
     # Test mode, remove leading '/' from identifier
-    if test
-      return test_handler(object_fields, identifier.drop(1),
-                          object_name, create_object)
+    if @test
+      return test_handler(object_fields, identifier.drop(1), object_name, create_object)
     end
 
     # Attempt to POST to TimeSync, then convert the response to a ruby
     # dictionary
     begin
       # Success!
-      response = RestClient.post url value.to_json
+      response = RestClient.post(url, auth_hash, :content_type => :json, :accept => :json)
       return response_to_ruby(response)
     rescue => e
       # Request error
-      return Hash[@error => e.response]
+      return Hash[@error => e]
     end
   end
 
@@ -1014,7 +1012,7 @@ class TimeSync # :nodoc:
       return response_to_ruby(response)
     rescue => e
       # Request error
-      return Hash[@error => e.response]
+      return Hash[@error => e]
     end
   end
 

@@ -42,7 +42,8 @@ end
 class TimeSync # :nodoc:
   # rubocop:disable MethodLength
   def initialize(baseurl, token = nil, test = false)
-    @baseurl = baseurl # passing val. of local var. to instance var.
+    # @baseurl = baseurl.chop if baseurl.end_with? "/" else baseurl
+    @baseurl = baseurl
     @user = nil
     @password = nil
     @auth_type = nil
@@ -61,9 +62,9 @@ class TimeSync # :nodoc:
     ]
     @optional_params = Hash[
         'time' => %w(notes issue_uri activities),
-        'project' => %w(uri users 'default_activity'),
+        'project' => %w(uri users default_activity),
         'activity' => [],
-        'user' => %w(displayname email site_admin site_spectator
+        'user' => %w(display_name email site_admin site_spectator
         site_manager meta active)
     ]
   end
@@ -128,7 +129,7 @@ class TimeSync # :nodoc:
       token_response = response_to_ruby(response)
     rescue => e
       # Request error
-      puts Hash[@error => e]
+      return Hash[@error => e]
     end
 
     # If TimeSync returns an error, return the error without setting the
@@ -340,7 +341,7 @@ class TimeSync # :nodoc:
     end
 
     # Check for key error
-    if @query_parameters
+    if query_parameters
       for key, value in query_parameters
         unless valid_get_queries.include?(key)
           return [Hash[@error => 'invalid query: %s' % key]]
@@ -353,18 +354,19 @@ class TimeSync # :nodoc:
 
     # If there are filtering parameters, construct them correctly.
     # Else reinitialize the query string to a ? so we can add the token.
-    if @query_parameters
-      query_string = construct_filter_query(@query_parameters)
+    if query_parameters
+      query_string = construct_filter_query(query_parameters)
     else
       query_string = '?'
     end
 
+    # puts query_string
     # Construct query url, at this point query_string ends with a ?
     url = '%s/times%stoken=%s' % Array[@baseurl, query_string, @token]
 
     # Test mode, return one or many objects depending on if uuid is passed
     if @test
-      if @query_parameters && query_parameters.key?('uuid')
+      if query_parameters && query_parameters.key?('uuid')
         return mock_rimesync.get_times(query_parameters['uuid'])
       else
         return mock_rimesync.get_times(nil)
@@ -413,7 +415,7 @@ class TimeSync # :nodoc:
 
     # Save for passing to test mode since format_endpoints deletes
     # kwargs['slug'] if it exists
-    if @query_parameters && query_parameters.key?('slug')
+    if query_parameters && query_parameters.key?('slug')
       slug = query_parameters['slug']
     else
       slug = nil
@@ -423,7 +425,7 @@ class TimeSync # :nodoc:
 
     # If kwargs exist, create a correct query string
     # Else, prepare query_string for the token
-    if @query_parameters
+    if query_parameters
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
@@ -435,9 +437,11 @@ class TimeSync # :nodoc:
       query_string = '?token=%s' % @token
     end
 
+    puts query_string
     # Construct query url - at this point query_string ends with
     # ?token=token
     url = '%s/projects%s' % Array[@baseurl, query_string]
+    # puts url
 
     # Test mode, return list of projects if slug is nil, or a single
     # project
@@ -487,17 +491,17 @@ class TimeSync # :nodoc:
 
     # Save for passing to test mode since format_endpoints deletes
     # kwargs['slug'] if it exists
-    if @query_parameters && query_parameters.key?('slug')
+    if query_parameters && query_parameters.key?('slug')
       slug = query_parameters['slug']
     else
       slug = nil
     end
 
-    @query_string = ''
+    query_string = ''
 
     # If kwargs exist, create a correct query string
     # Else, prepare query_string for the token
-    if @query_parameters
+    if query_parameters
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
@@ -897,25 +901,26 @@ class TimeSync # :nodoc:
 
     # missing_list contains a list of all the required parameters that were
     # not passed. It is initialized to all required parameters.
-    missing_list = Array[@required_params[object_name]]
+    missing_list = @required_params[object_name]
 
     # For each key, if it is not required or optional, it is not allowed
     # If it is requried, remove that parameter from the missing_list, since
     # it is no longer missing
+    # actual.each do |key, value|
     for key, value in actual
-      if !@required_params[object_name].include?key and !@optional_params[object_name].include?key # error
+      if !@required_params[object_name].include?key.to_s and !@optional_params[object_name].include?key.to_s
         return '%s object: invalid field: %s' % Array[object_name, key]
       end
+
       # Remove field from copied list if the field is in required
-      if @required_params[object_name].include? key
-        puts "hi"
-        missing_list.delete(key)
+      if @required_params[object_name].include? key.to_s
+        print missing_list.delete(key.to_s)
       end
     end
 
     # If there is anything in missing_list, it is an absent required field
     # This only needs to be checked if the create_object flag is passed
-    if create_object && missing_list
+    if create_object && !missing_list.empty?
       return '%s object: missing required field(s): %s' % Array[
           object_name, missing_list.join(', ')]
     end
@@ -947,16 +952,16 @@ class TimeSync # :nodoc:
     end
 
     # Since this is a POST request, we need an auth and object objects
-    auth_hash = Hash['auth' => token_auth, 'object' => object_fields].to_json
+    values = Hash['auth' => token_auth, 'object' => object_fields].to_json
 
 
     # Reformat the identifier with the leading '/' so it can be added to
     # the url. Do this here instead of the url assignment below so we can
     # set it to ' if it wasn't passed.
-    @identifier = identifier ? '/%s' % identifier : ''
+    identifier = identifier ? '/%s' % identifier : ''
 
     # Construct url to post to
-    @url = '%s/%s%s' % Array[@baseurl, endpoint, identifier]
+    url = '%s/%s%s' % Array[@baseurl, endpoint, identifier]
 
     # Test mode, remove leading '/' from identifier
     if @test
@@ -967,7 +972,7 @@ class TimeSync # :nodoc:
     # dictionary
     begin
       # Success!
-      response = RestClient.post(url, auth_hash, :content_type => :json, :accept => :json)
+      response = RestClient.post(url, values, :content_type => :json, :accept => :json)
       return response_to_ruby(response)
     rescue => e
       # Request error
@@ -982,7 +987,6 @@ class TimeSync # :nodoc:
     # equivalent (in seconds).
 
     begin
-      puts duration
       t = Time.strptime(duration, '%Hh%Mm')
       hours_spent = t.hour
       minutes_spent = t.min

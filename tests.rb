@@ -51,24 +51,16 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    # Format content for assert_called_with test
-    # content = Hash[
-    #     'auth' => @ts.token_auth,
-    #     'object' => time,
-    # ]
-
-    url = 'http://ts.example.com/v1/times'
-    # Mock requests.post so it doesn't actually post to TimeSync
-    # requests.post = mock.create_autospec(requests.post)
-    # Send it
-    stub_request(:post, url).to_return(:body => JSON.dump(Hash[
+    content = Hash[
         'auth' => @ts.token_auth,
         'object' => time,
-    ]))
-    @ts.create_or_update(time, nil, 'time', 'times')
+    ].to_json
 
-    # Test it
-    # requests.post.assert_called_with('http://ts.example.com/v1/times', json = content)
+    url = 'http://ts.example.com/v0/times'
+
+    stub_request(:post, url).with(body: content)
+
+    @ts.create_or_update(time, nil, 'time', 'times')
   end
 
   # Tests TimeSync._TimeSync.create_or_update for update time with valid data
@@ -84,25 +76,22 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17',
     ]
 
-    # Test baseurl and uuid
-    uuid = '1234-5678-90abc-d'
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => time,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    # Test baseurl and uuid
+    uuid = '1234-5678-90abc-d'
+
+    url = 'http://ts.example.com/v0/times/%s' % uuid
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(time, uuid, 'time', 'times')
-
-    # Test it
-    requests.post
-    .assert_called_with('http://ts.example.com/v1/times/{}'
-                        .format(uuid), json = content)
+    @ts.create_or_update(time, uuid, 'time', 'times')
   end
 
   # Tests TimeSync.create_or_update
@@ -118,20 +107,16 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => time,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/times/%s' % uuid
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(time, uuid, 'time', 'times', false)
-
-    # Test it
-    requests.post
-            .assert_called_with('http://ts.example.com/v1/times/{}'
-                                .format(uuid), json = content)
+    @ts.create_or_update(time, uuid, 'time', 'times', false)
   end
 
   # Tests TimeSync.create_or_update
@@ -183,10 +168,10 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     time_to_test = Hash[time]
 
     for key, value in time
-      time_to_test.delete(key) # will ot work
+      time_to_test.delete(key)
       assert_equal(@ts.create_or_update(
                      time_to_test, nil, 'time', 'times'),
-                   [Hash[@ts.instance_variable_get(:@error) => 'time object: missing required field(s): %s' % key]])
+                   Hash[@ts.instance_variable_get(:@error) => 'time object: missing required field(s): %s' % key])
       time_to_test = Hash[time]
     end
   end
@@ -215,19 +200,17 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => user,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/users'
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(user, nil, 'user', 'users')
+    @ts.create_or_update(user, nil, 'user', 'users')
 
-    # Test it
-    requests.post.assert_called_with('http://ts.example.com/v1/users',
-                                     json = content)
   end
 
   # Tests TimeSync.create_or_update for update user with valid data
@@ -243,23 +226,19 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     # Test baseurl and uuid
     username = 'example-user'
 
-    # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => user,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/users/%s' % username
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(user, username, 'user',
+    @ts.create_or_update(user, username, 'user',
                                    'users', false)
 
-    # Test it
-    requests.post.assert_called_with(
-        'http://ts.example.com/v1/users/{}'.format(username),
-        json = content)
   end
 
   # Tests TimeSync.create_or_update
@@ -273,23 +252,18 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     # Test baseurl and uuid
     username = 'example-user'
 
-    # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => user,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/users/%s' % username
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(user, username, 'user',
+    @ts.create_or_update(user, username, 'user',
                                    'users', false)
-
-    # Test it
-    requests.post.assert_called_with(
-        'http://ts.example.com/v1/users/{}'.format(username),
-        json = content)
   end
 
   # Tests TimeSync.create_or_update
@@ -299,16 +273,16 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     user = Hash[
         'username' => 'example-user',
         'password' => 'password',
-        'displayname' => 'Example User',
+        'display_name' => 'Example User',
         'email' => 'example.user@example.com',
         'bad' => 'field'
     ]
 
-    assert_equal(ts.create_or_update(user, nil,
+    assert_equal(@ts.create_or_update(user, nil,
                                                 'user',
                                                 'users'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                        'user object: invalid field: bad']])
+                 Hash[@ts.instance_variable_get(:@error) =>
+                        'user object: invalid field: bad'])
   end
 
   # Tests TimeSync.create_or_update
@@ -316,15 +290,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def test_create_or_update_create_user_two_required_missing
     # Parameters to be sent to TimeSync
     user = Hash[
-        'displayname' => 'Example User',
+        'display_name' => 'Example User',
         'email' => 'example.user@example.com'
     ]
 
-    assert_equal(ts.create_or_update(user, nil,
+    assert_equal(@ts.create_or_update(user, nil,
                                                 'user',
                                                 'users'),
-                 [Hash[@ts.instance_variable_get(:@error) => 'user object: missing required \
-                                   field(s): username, password']])
+                 Hash[@ts.instance_variable_get(:@error) => 'user object: missing required field(s): username, password'])
   end
 
   # Tests TimeSync.create_or_update
@@ -338,12 +311,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     user_to_test = Hash[user]
 
-    for key,value in user
-      del(user_to_test[key])
-      assert_equal(ts.create_or_update(
+    for key, value in user
+      user_to_test.delete(key)
+      assert_equal(@ts.create_or_update(
                    user_to_test, nil, 'user', 'users'),
-                   [Hash[@ts.instance_variable_get(:@error) => 'user object: missing required \
-                                     field(s): {}'.format(key)]])
+                   Hash[@ts.instance_variable_get(:@error) => 'user object: missing required field(s): %s' % key])
       user_to_test = Hash[user]
     end
   end
@@ -381,18 +353,16 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     content = Hash[
       'auth' => @ts.token_auth,
       'object' => project,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/projects'
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
     @ts.create_or_update(project, nil,
-                                   'project', 'projects')
+                         'project', 'projects')
 
-    # Test it
-    requests.post.assert_called_with('http://ts.example.com/v1/projects',
-                                     json = content)
   end
 
   # Tests TimeSync.create_or_update for
@@ -413,21 +383,18 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => project,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/projects/slug'
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(project, 'slug',
+    @ts.create_or_update(project, 'slug',
                                    'project', 'projects')
 
-    # Test it
-    requests.post.assert_called_with(
-        'http://ts.example.com/v1/projects/slug',
-        json = content)
   end
 
   # Tests TimeSync.create_or_update for
@@ -440,21 +407,17 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => project,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/projects/slug'
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(project, 'slug', 'project',
-                                   'projects', false)
-
-    # Test it
-    requests.post.assert_called_with(
-        'http://ts.example.com/v1/projects/slug',
-        json=content)
+    @ts.create_or_update(project, 'slug', 'project',
+                         'projects', false)
   end
 
   # Tests TimeSync.create_or_update for
@@ -477,8 +440,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     assert_equal(@ts.create_or_update(project, nil,
                                                 'project',
                                                 'projects'),
-                 [Hash[@ts.intance_variable_get(:@error) =>
-                       'project object: invalid field: bad']])
+                 Hash[@ts.instance_variable_get(:@error) =>
+                       'project object: invalid field: bad'])
   end
 
   # Tests TimeSync.create_or_update for
@@ -510,7 +473,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       project_to_test.delete(key)
       assert_equal(@ts.create_or_update(
                         project_to_test, nil, 'project', 'projects'),
-                        [Hash[@ts.instance_variable_get(:@error) => 'project object: missing required field(s): %s' % key]])
+                        Hash[@ts.instance_variable_get(:@error) => 'project object: missing required field(s): %s' % key])
       project_to_test = Hash[project]
     end
   end
@@ -540,20 +503,17 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-      'auth' => ts.token_auth,
+      'auth' => @ts.token_auth,
       'object' => project
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/activities'
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(project, nil,
-                                        'activity', 'activities')
-
-    # Test it
-    requests.post.assert_called_with('http://ts.example.com/v1/activities',
-                                     json = content)
+    @ts.create_or_update(project, nil,
+                         'activity', 'activities')
   end
 
   # Tests TimeSync.create_or_update
@@ -566,22 +526,18 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     # Format content for assert_called_with test
-    content = {
-      'auth' => ts.token_auth,
+    content = Hash[
+      'auth' => @ts.token_auth,
       'object' => activity
-    }
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/activities/slug'
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(activity, 'slug',
-                                        'activity', 'activities')
-
-    # Test it
-    requests.post.assert_called_with(
-        'http://ts.example.com/v1/activities/slug',
-        json = content)
+    @ts.create_or_update(activity, 'slug',
+                         'activity', 'activities')
   end
 
   # Tests TimeSync.create_or_update
@@ -594,21 +550,17 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     # Format content for assert_called_with test
     content = Hash[
-        'auth' => ts.token_auth,
+        'auth' => @ts.token_auth,
         'object' => activity,
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
+    url = 'http://ts.example.com/v0/activities/slug'
+
+    stub_request(:post, url).with(body: content)
 
     # Send it
-    ts.create_or_update(activity, 'slug', 'activity',
-                                        'activities', false)
-
-    # Test it
-    requests.post.assert_called_with(
-        'http://ts.example.com/v1/activities/slug',
-        json = content)
+    @ts.create_or_update(activity, 'slug', 'activity',
+                         'activities', false)
   end
 
   # Tests TimeSync.create_or_update
@@ -657,7 +609,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       activity_to_test.delete(key)
       assert_equal(@ts.create_or_update(
                    activity_to_test, nil, 'activity', 'activities'),
-                   [Hash[@ts.instance_variable_get(:@error) => 'activity object: missing required field(s): %s' % key]])
+                   Hash[@ts.instance_variable_get(:@error) => 'activity object: missing required field(s): %s' % key])
       activity_to_test = Hash[activity]
     end
   end
@@ -1087,11 +1039,12 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # query and slug, which is not allowed
   def test_get_projects_include_deleted_with_slug
     # Mock requests.get
-    requests.get = mock.Mock('requests.get') # won't work
+    # requests.get = mock.Mock('requests.get') # won't work
+    stub_request(:get, /.*/)
 
     # Test that error message is returned,
     # can't combine slug and include_deleted
-    assert_equal(ts.get_projects(Hash['slug' => 'gwm',
+    assert_equal(@ts.get_projects(Hash['slug' => 'gwm',
                                       'include_deleted' => true]),
                  [Hash[@ts.instance_variable_get(:@error) =>
                        'invalid combination: slug and include_deleted']])
@@ -1177,19 +1130,19 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.get_activities with
   # include_deleted query and slug, which is not allowed
-  def test_get_activities_include_deleted_with_slug   # ERROR
+  def test_get_activities_include_deleted_with_slug
     # Mock requests.get
-    requests.get = mock.Mock('requests.get')
+    # requests.get = mock.Mock('requests.get')
 
-    stub_request(:get)
+    stub_request(:get, /.*/)
     # .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
     # Test that error message is returned, can't combine slug and
     # include_deleted
     assert_equal(@ts.get_activities(Hash['slug' => 'code',
                                         'include_deleted' => true]),
-                 [Hash[@ts.error =>
-                       'invalid combination => slug and include_deleted']])
+                 [Hash[@ts.instance_variable_get(:@error) =>
+                       'invalid combination: slug and include_deleted']])
   end
 
   # Tests TimeSync.get_activities with
@@ -1211,26 +1164,24 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   # Test that get_times returns error message when auth not set
-  def test_get_times_no_auth # ERROR
-    @ts.instance_variable_set(:@token, 'nil')
+  def test_get_times_no_auth
+    @ts.instance_variable_set(:@token, nil)
     assert_equal(@ts.get_times,
-                 [Hash[@ts.error => 'Not authenticated with TimeSync, call authenticate first']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'Not authenticated with TimeSync, call authenticate first']])
   end
 
   # Test that get_projects returns error message when auth not set
-  def test_get_projects_no_auth # ERROR
-    @ts.instance_variable_set(:@token, 'nil')
+  def test_get_projects_no_auth
+    @ts.instance_variable_set(:@token, nil)
     assert_equal(@ts.get_projects,
-                 [Hash[@ts.error => 'Not authenticated with TimeSync, \
-                                    call authenticate first']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'Not authenticated with TimeSync, call authenticate first']])
   end
 
   # Test that get_activities returns error message when auth not set
   def test_get_activities_no_auth
-    @ts.instance_variable_set(:@token, 'nil')
+    @ts.instance_variable_set(:@token, nil)
     assert_equal(@ts.get_activities,
-                 [Hash[@ts.error => 'Not authenticated with TimeSync, \
-                                   call authenticate first']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'Not authenticated with TimeSync, call authenticate first']])
   end
 
   # Tests TimeSync.get_users
@@ -1294,8 +1245,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       'revision' => 4
     ]
 
-    response = resp
-    response.body = json_object
+    response = Resp.new
+    # response.body = json_object
+    response.instance_variable_set(:@body, json_object)
 
     assert_equal(@ts.response_to_ruby(response), ruby_object)
   end
@@ -1363,38 +1315,39 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    response = resp
+    response = Resp.new
     response.body = json_object
 
-    assert_equal(ts.response_to_ruby(response), ruby_object)
+    assert_equal(@ts.response_to_ruby(response), ruby_object)
   end
 
-  # Check that __response_to_ruby returns correctly for delete_*G methods
+  # Check that response_to_ruby returns correctly for delete_*G methods
   def test_response_to_ruby_empty_response
-    response = resp
-    response.body = ''
-    response.code = 200
-    assert_equal(ts.response_to_ruby(response),
+    response = Resp.new
+    response.instance_variable_set(:@body, '')
+    response.instance_variable_set(:@code, 200)
+    assert_equal(@ts.response_to_ruby(response),
                  Hash['status' => 200])
   end
 
 
   # Tests that TimeSync.create_time calls _create_or_update with correct parameters
-  def test_create_time
-    time = Hash[
-        'duration': 12,
-        'project': 'ganeti-web-manager',
-        'user': 'example-user',
-        'activities': ['documenting'],
-        'notes': 'Worked on docs',
-        'issue_uri': 'https://github.com/',
-        'date_worked': '2014-04-17',
-    ]
+  # @patch("pymesync.TimeSync._TimeSync__create_or_update")
+  # def test_create_time
+  #   time = Hash[
+  #       'duration': 12,
+  #       'project': 'ganeti-web-manager',
+  #       'user': 'example-user',
+  #       'activities': ['documenting'],
+  #       'notes': 'Worked on docs',
+  #       'issue_uri': 'https://github.com/',
+  #       'date_worked': '2014-04-17',
+  #   ]
 
-    @ts.create_time(time)
+  #   @ts.create_time(time)
 
-    # mock_create_or_update.assert_called_with(time, None, "time", "times")
-  end
+  #   mock_create_or_update.assert_called_with(time, None, "time", "times")
+  # end
 
 
   # @patch('rimesync.TimeSync.create_or_update')
@@ -1544,21 +1497,21 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     user = Hash[
         'username' => 'example-user',
         'password' => 'password',
-        'displayname' => 'Example User',
+        'display_name' => 'Example User',
         'email' => 'example.user@example.com',
-        'admin' => true,
-        'spectator' => false,
-        'manager' => true,
+        'site_admin' => true,
+        'site_spectator' => false,
+        'site_manager' => true,
         'active' => true,
     ]
 
     user_to_test = Hash[user]
-    ary = %w(admin spectator manager active)
+    ary = %w(site_admin site_spectator site_manager active)
     ary.each do |perm|
       user_to_test = Hash[user]
       user_to_test[perm] = 'invalid'
       assert_equal(@ts.create_user(user_to_test),
-                   [Hash[@ts.instance_variable_get(:@error) => 'user object: %s must be true or false' % perm]])
+                   Hash[@ts.instance_variable_get(:@error) => 'user object: %s must be True or False' % perm])
     end
   end
 
@@ -1627,47 +1580,34 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
           'username' => 'example-user',
           'password' => 'password'
       ]
-    ]
+    ].to_json
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post)
-    # stub_request(:post)
+    url = 'http://ts.example.com/v0/login'
 
-    ts.authenticate('example-user', 'password', 'password')
+    stub_request(:post, url).with(body: auth)
 
-    requests.post.assert_called_with('http://ts.example.com/v1/login',
-                                     json = auth)
+    @ts.authenticate('example-user', 'password', 'password')
   end
 
   # Tests authenticate method with a token return
   def test_authentication_return_success
-    # Use this fake response object for mocking requests.post
-    response = resp
-    response.body = json.dump(Hash['token' => 'sometoken'])
+    stub_request(:post, /.*/)
+    .to_return(:body => JSON.dump([Hash['token' => 'sometoken']]))
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post,
-                                         return_value = response)
+    auth_block = @ts.authenticate('example-user', 'password', 'password')
 
-    auth_block = ts.authenticate('example-user', 'password', 'password')
-
-    assert_equal(auth_block['token'], ts.token, 'sometoken')
+    assert_equal(auth_block['token'], @ts.instance_variable_get(:@token), 'sometoken')
     assert_equal(auth_block, Hash['token' => 'sometoken'])
   end
 
   # Tests authenticate method with an error return
   def test_authentication_return_error
-    # Use this fake response object for mocking requests.post
-    response = resp
-    response.body = json.dump(Hash['status' => 401,
+    stub_request(:post, /.*/)
+    .to_return(:body => JSON.dump([Hash['status' => 401,
                                    'error' => 'Authentication failure',
-                                   'text' => 'Invalid username or password'])
+                                   'text' => 'Invalid username or password']]))
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post,
-                                         return_value = response)
-
-    auth_block = ts.authenticate('example-user', 'password', 'password')
+    auth_block = @ts.authenticate('example-user', 'password', 'password')
 
     assert_equal(auth_block,
                  Hash['status' => 401,
@@ -1677,65 +1617,64 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests authenticate method with no username in call
   def test_authentication_no_username
-    assert_equal(@ts.authenticate(password = 'password', auth_type = 'password'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                  'Missing username; please add to method call']])
+    assert_equal(@ts.authenticate(username = nil, password = 'password', auth_type = 'password'),
+                 Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing username; please add to method call'])
   end
 
   # Tests authenticate method with no password in call
   def test_authentication_no_password
-    assert_equal(@ts.authenticate(username = 'username', auth_type = 'password'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                  'Missing password; please add to method call']])
+    assert_equal(@ts.authenticate(username = 'username', password = nil, auth_type = 'password'),
+                 Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing password; please add to method call'])
   end
 
   # Tests authenticate method with no auth_type in call
   def test_authentication_no_auth_type
-    assert_equal(@ts.authenticate(password = 'password', username = 'username'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                  'Missing auth_type; please add to method call']])
+    assert_equal(@ts.authenticate(username = 'username', password = 'password', auth_type = nil),
+                 Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or password in call
   def test_authentication_no_username_or_password
-    assert_equal(@ts.authenticate(auth_type = 'password'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                  'Missing username, password; please add to method call']])
+    assert_equal(@ts.authenticate(username = nil, password = nil, auth_type = 'password'),
+                 Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing username, password; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_username_or_auth_type
-    assert_equal(@ts.authenticate(password = 'password'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                  'Missing username, auth_type; please add to method call']])
+    assert_equal(@ts.authenticate(username = nil, password = 'password', auth_type = nil),
+                 Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing username, auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_password_or_auth_type
-    assert_equal(@ts.authenticate(username = 'username'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                  'Missing password, auth_type; please add to method call']])
+    assert_equal(@ts.authenticate(username = 'username', password = nil, auth_type = nil),
+                 Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing password, auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no arguments in call
   def test_authentication_no_arguments
     assert_equal(@ts.authenticate,
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                  'Missing username, password, auth_type; please add to method call']])
+                 Hash[@ts.instance_variable_get(:@error) =>
+                  'Missing username, password, auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no token in response
   def test_authentication_no_token_in_response
-    response = resp
-    response.code = 502
+    response = Resp.new
+    response.instance_variable_set(:@status_code, 502)
 
-    # Mock requests.post so it doesn't actually post to TimeSync
-    requests.post = mock.create_autospec(requests.post,
-                                         return_value = response)
+    # stub_request(:post, /.*/).to_return(:status => 502)
+    stub_request(:post, /.*/).to_return(response)
 
-    assert_equal(ts.authenticate(username = 'username', password = 'password',
+    assert_equal(@ts.authenticate(username = 'username', password = 'password',
                                  auth_type = 'password'),
-                 Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at baseurl http://ts.example.com/v1 - response status was 502'])
+                 Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at baseurl http://ts.example.com/v0 - response status was 502'])
   end
 
   # Test internal local_auth_error method with token
@@ -1753,13 +1692,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test that pymesync doesn't break when
   # getting a response that is not a JSON object
   def test_handle_other_connection_response
-    response = resp
-    response.code = 502
+    response = Resp.new
+    response.instance_variable_set(:@code, 502)
 
-    assert_equal(ts.response_to_ruby(response),
-                 Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at \
-                                   baseurl http://ts.example.com/v1 - response \
-                                   status was 502'])
+    assert_equal(@ts.response_to_ruby(response),
+                 Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at baseurl http://ts.example.com/v0 - response status was 502'])
   end
 
   # Test that _delete_object calls requests.delete with the correct url
@@ -1774,7 +1711,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def test_delete_object_project
     url = '%s/projects/ts?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
                                               @ts.instance_variable_get(:@token)]
-    # requests.delete = mock.create_autospec(requests.delete)
     stub_request(:delete, url)
     @ts.delete_object('projects', 'ts')
   end
@@ -1926,7 +1862,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'issue_uri': 'https://github.com/',
         'date_worked': '2014-04-17',
     ]
-
     assert_equal(@ts.create_time(time),
                  Hash[@ts.instance_variable_get(:@error) =>'time object: duration cannot be negative'])
   end
@@ -1949,115 +1884,74 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                  [Hash[@ts.instance_variable_get(:@error) => 'time object: invalid duration string']])
   end
 
+
   # Test project_users method with a valid project object returned from TimeSync
   def test_project_users_valid
-    project = 'rime'
-    # response.code = 200
-    # response.body = json.dump(Hash[
-    #     'uri' => 'https://github.com/osuosl/rimesync',
-    #     'name' => 'pymesync',
-    #     'slugs' => Array['rime', 'ps', 'rimesync'],
-    #     'uuid' => 'a034806c-00db-4fe1-8de8-514575f31bfb',
-    #     'revision' => 4,
-    #     'created_at' => '2014-07-17',
-    #     'deleted_at' => nil,
-    #     'updated_at' => '2014-07-20',
-    #     'users' => Hash[
-    #         'malcolm' => Hash['member' => true,
-    #                           'manager' => true,
-    #                           'spectator' => true],
-    #         'jayne' =>   Hash['member' => true,
-    #                           'manager' => false,
-    #                           'spectator' => false],
-    #         'kaylee' =>  Hash['member' => true,
-    #                           'manager' => false,
-    #                           'spectator' => false],
-    #         'zoe' =>     Hash['member' => true,
-    #                           'manager' => false,
-    #                           'spectator' => false],
-    #         'hoban' =>   Hash['member' => true,
-    #                           'manager' => false,
-    #                           'spectator' => false],
-    #         'simon' =>   Hash['member' => false,
-    #                           'manager' => false,
-    #                           'spectator' => true],
-    #         'river' =>   Hash['member' => false,
-    #                           'manager' => false,
-    #                           'spectator' => true],
-    #         'derrial' => Hash['member' => false,
-    #                           'manager' => false,
-    #                           'spectator' => true],
-    #         'inara' =>   Hash['member' => false,
-    #                           'manager' => false,
-    #                           'spectator' => true]
-    #     ]
-    # ])
+      project = "rime"
+      response = Resp.new
+      response.instance_variable_set(:@code, 200)
 
-    expected_result = Hash[
-        'malcolm' => %w(member manager spectator),
-        'jayne' =>   Array['member'],
-        'kaylee' =>  Array['member'],
-        'zoe' =>     Array['member'],
-        'hoban' =>   Array['member'],
-        'simon' =>   Array['spectator'],
-        'river' =>   Array['spectator'],
-        'derrial' => Array['spectator'],
-        'inara' =>   Array['spectator']
-    ]
+      expected_result = Hash[
+          'malcolm' => ['member', 'manager', 'spectator'],
+          'jayne' =>   ['member'],
+          'kaylee' =>  ['member'],
+          'zoe' =>     ['member'],
+          'hoban' =>   ['member'],
+          'simon' =>   ['spectator'],
+          'river' =>   ['spectator'],
+          'derrial' => ['spectator'],
+          'inara' =>   ['spectator']
+      ]
 
-    # Mock requests.get so it doesn't actually post to TimeSync
-    # requests.get = mock.create_autospec(requests.get, return_value = response)
+      stub_request(:get, /.*/).to_return(:body => JSON.dump(Hash[
+          "uri" => "https://github.com/osuosl/pymesync",
+          "name" => "pymesync",
+          "slugs" => ["pyme", "ps", "pymesync"],
+          "uuid" => "a034806c-00db-4fe1-8de8-514575f31bfb",
+          "revision" => 4,
+          "created_at" => "2014-07-17",
+          "deleted_at" => nil,
+          "updated_at" => "2014-07-20",
+          "users" => Hash[
+              "malcolm" => Hash["member" => true,
+                          "manager" => true,
+                          "spectator" => true],
+              "jayne" =>   Hash["member" => true,
+                          "manager" => false,
+                          "spectator" => false],
+              "kaylee" =>  Hash["member" => true,
+                          "manager" => false,
+                          "spectator" => false],
+              "zoe" =>     Hash["member" => true,
+                          "manager" => false,
+                          "spectator" => false],
+              "hoban" =>   Hash["member" => true,
+                          "manager" => false,
+                          "spectator" => false],
+              "simon" =>   Hash["member" => false,
+                          "manager" => false,
+                          "spectator" => true],
+              "river" =>   Hash["member" => false,
+                          "manager" => false,
+                          "spectator" => true],
+              "derrial" => Hash["member" => false,
+                          "manager" => false,
+                          "spectator" => true],
+              "inara" =>   Hash["member" => false,
+                          "manager" => false,
+                          "spectator" => true]
+          ]
+      ]))
 
-    stub_request(:get)
-    .to_return(:body => JSON.dump(Hash[
-        'uri' => 'https://github.com/osuosl/rimesync',
-        'name' => 'pymesync',
-        'slugs' => Array['rime', 'ps', 'rimesync'],
-        'uuid' => 'a034806c-00db-4fe1-8de8-514575f31bfb',
-        'revision' => 4,
-        'created_at' => '2014-07-17',
-        'deleted_at' => nil,
-        'updated_at' => '2014-07-20',
-        'users' => Hash[
-            'malcolm' => Hash['member' => true,
-                              'manager' => true,
-                              'spectator' => true],
-            'jayne' =>   Hash['member' => true,
-                              'manager' => false,
-                              'spectator' => false],
-            'kaylee' =>  Hash['member' => true,
-                              'manager' => false,
-                              'spectator' => false],
-            'zoe' =>     Hash['member' => true,
-                              'manager' => false,
-                              'spectator' => false],
-            'hoban' =>   Hash['member' => true,
-                              'manager' => false,
-                              'spectator' => false],
-            'simon' =>   Hash['member' => false,
-                              'manager' => false,
-                              'spectator' => true],
-            'river' =>   Hash['member' => false,
-                              'manager' => false,
-                              'spectator' => true],
-            'derrial' => Hash['member' => false,
-                              'manager' => false,
-                              'spectator' => true],
-            'inara' =>   Hash['member' => false,
-                              'manager' => false,
-                              'spectator' => true]
-        ]
-    ]))
+      assert_equal(@ts.project_users(project=project), expected_result)
+    end
 
-
-    assert_equal(@ts.project_users(project = project), expected_result)
-  end
 
   # Test project_users method with an error object returned from TimeSync
   def test_project_users_error_response
     proj = 'rimes'
-    # response = resp
-    # response.code = 404
+    # response = Resp.new
+    # response.instance_variable_set(:@code, 404)
     # response.body = JSON.dump(Hash[
     #     'error' => 'Object not found',
     #     'text' => 'nilxistent project'
@@ -2067,7 +1961,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     # requests.get = mock.create_autospec(requests.get,
     #                                     return_value = response)
 
-    stub_request(:get).to_return(:body => JSON.dump([Hash['error' => 'Object not found', 'text' => 'nilxistent project']]))
+    stub_request(:get, /.*/).to_return(:body => JSON.dump([Hash['error' => 'Object not found', 'text' => 'nilxistent project']]))
 
     assert_equal(@ts.project_users(project = proj),
                  Hash['error' => 'Object not found',

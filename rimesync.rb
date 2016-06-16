@@ -18,7 +18,7 @@
 # - get_users(username) - Get user information from TimeSync
 
 # Supported TimeSync versions:
-# v1
+# v0
 
 # import operator
 
@@ -87,23 +87,23 @@ class TimeSync # :nodoc:
     # Check for correct arguments in method call
     arg_error_list = Array[]
 
-    unless username
+    if username.nil?
       arg_error_list.push('username')
     end
 
-    unless password
+    if password.nil?
       arg_error_list.push('password')
     end
 
-    unless auth_type
+    if auth_type.nil?
       arg_error_list.push('auth_type')
     end
 
-    if arg_error_list.nil?
+    if !arg_error_list.empty?
       return Hash[@error => 'Missing %s; please add to method call' % Array[arg_error_list.join(', ')]]
     end
 
-    arg_error_list = nil
+    arg_error_list.clear
 
     @user = username
     @password = password
@@ -411,7 +411,7 @@ class TimeSync # :nodoc:
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
-      if query_string is nil
+      if query_string.nil?
         error_message = 'invalid combination: slug and include_deleted'
         return [Hash[@error => error_message]]
       end
@@ -487,7 +487,7 @@ class TimeSync # :nodoc:
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
-      if query_string is nil
+      if query_string.nil?
         error_message = 'invalid combination: slug and include_deleted'
         return [Hash[@error => error_message]]
       end
@@ -781,7 +781,7 @@ class TimeSync # :nodoc:
   def response_to_ruby(response)
     # Convert response to native ruby list of objects
     # DELETE returns an empty body if successful
-    if response.body.empty? && response.code == 200
+    if response.instance_variable_get(:@body).nil? && response.instance_variable_get(:@code) == 200
       return Hash['status' => 200]
     end
 
@@ -789,12 +789,12 @@ class TimeSync # :nodoc:
     # and we got a ValueError, we know we are having trouble connecting to
     # TimeSync because we are not getting a return from TimeSync.
     begin
-      ruby_object = JSON.load(response.body)
+      ruby_object = JSON.load(response.instance_variabel_get(:@body))
     rescue Exception => e
       # If we get a ValueError, response.body isn't a JSON object, and
       # therefore didn't come from a TimeSync connection.
       err_msg = 'connection to TimeSync failed at baseurl %s - ' % @baseurl
-      err_msg += 'response status was %s' % response.code
+      err_msg += 'response status was %s' % response.instance_variable_get(:@code)
       return Hash[@error => err_msg]
     end
     return ruby_object
@@ -906,6 +906,8 @@ class TimeSync # :nodoc:
     # If it is requried, remove that parameter from the missing_list, since
     # it is no longer missing
     # actual.each do |key, value|
+    puts actual
+
     for key, value in actual
       if !@required_params[object_name].include?key.to_s and !@optional_params[object_name].include?key.to_s
         return '%s object: invalid field: %s' % Array[object_name, key]

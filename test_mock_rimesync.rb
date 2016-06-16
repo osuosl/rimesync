@@ -10,20 +10,14 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
     @ts.authenticate('testuser', 'testpassword', 'password')
   end
 
-  def teardown
-    # remove_instance_variable(:@ts)
-    @ts = nil
-  end
-
   def test_mock_authenticate
-    @ts.token = nil
-    assert_equal(ts.authenticate('example', 'ex', 'password'),
-                 Hash['token' => 'TESTTOKEN'])
-    assert_equal(ts.token, 'TESTTOKEN')
+    @ts.instance_variable_set(:@token, nil)
+    assert_equal(@ts.authenticate('example', 'ex', 'password'), Hash['token' => 'TESTTOKEN'])
+    assert_equal(@ts.intance_variable_get(:@token), 'TESTTOKEN')
   end
 
   def test_mock_token_expiration_time
-    assert_equal(ts.token_expiration_time,
+    assert_equal(@ts.token_expiration_time,
                  Time.new(2016, 1, 13, 11, 45, 34))
   end
 
@@ -54,7 +48,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'revision' => 1
     ]
 
-    assert_equal(ts.create_time(parameter_dict), expected_result)
+    assert_equal(@ts.create_time(parameter_dict), expected_result)
   end
 
   def test_mock_update_time
@@ -77,7 +71,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
          'uuid' => 'fake-uuid',
          'revision' => 2
      ]
-    assert_equal(ts.update_time(parameter_dict, 'fake-uuid'),
+    assert_equal(@ts.update_time(parameter_dict, 'fake-uuid'),
                  updated_param)
   end
 
@@ -107,7 +101,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'revision' => 1
     ]
 
-    assert_equal(ts.create_time(parameter_dict), expected_result)
+    assert_equal(@ts.create_time(parameter_dict), expected_result)
   end
 
   def test_mock_update_time_with_string_duration
@@ -132,7 +126,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'revision' => 2
     ]
 
-    assert_equal(ts.update_time(parameter_dict, 'fake-uuid'),
+    assert_equal(@ts.update_time(parameter_dict, 'fake-uuid'),
                  updated_param)
   end
 
@@ -166,7 +160,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    assert_equal(ts.create_project(parameter_dict), expected_result)
+    assert_equal(@ts.create_project(parameter_dict), expected_result)
   end
 
   def test_mock_update_project
@@ -195,7 +189,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    assert_equal(ts.update_project(parameter_dict, 'rs'),
+    assert_equal(@ts.update_project(parameter_dict, 'rs'),
                  expected_result)
   end
 
@@ -215,7 +209,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'revision' => 1
     ]
 
-    assert_equal(ts.create_activity(parameter_dict),
+    assert_equal(@ts.create_activity(parameter_dict),
                  expected_result)
   end
 
@@ -232,7 +226,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'revision' => 2
     ]
 
-    assert_equal(ts.update_activity(parameter_dict, 'ciw'),
+    assert_equal(@ts.update_activity(parameter_dict, 'ciw'),
                  expected_result)
   end
 
@@ -256,7 +250,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'deleted_at' => nil
     ]
 
-    assert_equal(ts.create_user(parameter_dict), expected_result)
+    assert_equal(@ts.create_user(parameter_dict), expected_result)
   end
 
   def test_mock_update_user
@@ -278,7 +272,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'deleted_at' => nil
     ]
 
-    assertEquals(ts.update_user(parameter_dict, 'example'),
+    assertEquals(@ts.update_user(parameter_dict, 'example'),
                  expected_result)
   end
 
@@ -300,7 +294,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
       ]
     ]
 
-    assert_equal(ts.get_times('uuid' => 'example-uuid'),
+    assert_equal(@ts.get_times('uuid' => 'example-uuid'),
                  expected_result)
   end
 
@@ -350,7 +344,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    assert_equal(ts.get_times, expected_result)
+    assert_equal(@ts.get_times, expected_result)
   end
 
   def test_mock_get_projects_with_slug
@@ -376,7 +370,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    assert_equal(ts.get_projects('slug' => 'ganeti'), expected_result)
+    assert_equal(@ts.get_projects('slug' => 'ganeti'), expected_result)
   end
 
   def test_mock_get_projects_no_slug
@@ -436,7 +430,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    assert_equal(ts.get_projects, expected_result)
+    assert_equal(@ts.get_projects, expected_result)
   end
 
   def test_mock_get_activities_with_slug
@@ -452,7 +446,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
       ]
     ]
 
-    assert_equal(ts.get_activities(Hash['slug' => 'docudocs']), expected_result)
+    assert_equal(@ts.get_activities(Hash['slug' => 'docudocs']), expected_result)
   end
 
   def test_mock_get_activities_no_slug
@@ -486,7 +480,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    assert_equal(ts.get_activities, expected_result)
+    assert_equal(@ts.get_activities, expected_result)
   end
 
   def test_mock_get_users_with_username
@@ -504,7 +498,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
       ]
     ]
 
-    assert_equal(ts.get_users('example-user'), expected_result)
+    assert_equal(@ts.get_users('example-user'), expected_result)
   end
 
   def test_mock_get_users_no_username
@@ -555,14 +549,14 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    assert_equal(ts.get_users, expected_result)
+    assert_equal(@ts.get_users, expected_result)
   end
 
   def test_mock_delete_object
-    assert_equal(ts.delete_time('junk'), [{ 'status' => 200 }])
-    assert_equal(ts.delete_project('junk'), [{ 'status' => 200 }])
-    assert_equal(ts.delete_activity('junk'), [{ 'status' => 200 }])
-    assert_equal(ts.delete_user('junk'), [{ 'status' => 200 }])
+    assert_equal(@ts.delete_time('junk'), [{ 'status' => 200 }])
+    assert_equal(@ts.delete_project('junk'), [{ 'status' => 200 }])
+    assert_equal(@ts.delete_activity('junk'), [{ 'status' => 200 }])
+    assert_equal(@ts.delete_user('junk'), [{ 'status' => 200 }])
   end
 
   def test_mock_project_users
@@ -578,14 +572,60 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
           'inara' => Array['spectator']
       ]
 
-    assert_equal(ts.project_users(project = 'ff'), expected_result)
+    assert_equal(@ts.project_users(project = 'ff'), expected_result)
   end
 
   def test_mock_project_users_no_slug
     expected_result = Hash[ts.error => 'Missing project slug,
                            please include in method call']
-    assert_equal(ts.project_users, expected_result)
+    assert_equal(@ts.project_users, expected_result)
+  end
+
+  def test_get_users_with_admin
+    expected_result = Array[Hash[
+      'username': 'admin',
+      'display_name': 'X. Ample User',
+      'email': 'example@example.com',
+      'active': true,
+      'site_admin': true,
+      'site_manager': false,
+      'site_spectator': false,
+      'created_at': '2015-02-29',
+      'deleted_at': nil
+    ]]
+
+    assert_equal(@ts.get_users('admin'), expected_result)
+  end
+
+  def test_get_users_with_manager
+    expected_result = Array[Hash[
+      'username': 'manager',
+      'display_name': 'X. Ample User',
+      'email': 'example@example.com',
+      'active': true,
+      'site_admin': false,
+      'site_manager': true,
+      'site_spectator': false,
+      'created_at': '2015-02-29',
+      'deleted_at': nil
+    ]]
+
+    assert_equal(@ts.get_users('manager'), expected_result)
+  end
+
+  def test_get_users_with_spectator
+    expected_result = Array[Hash[
+      'username': 'spectator',
+      'display_name': 'X. Ample User',
+      'email': 'example@example.com',
+      'active': true,
+      'site_admin': false,
+      'site_manager': false,
+      'site_spectator': true,
+      'created_at': '2015-02-29',
+      'deleted_at': nil
+    ]]
+
+    assert_equal(@ts.get_users('spectator'), expected_result)
   end
 end
-
-# Test::Unit::UI::Console::TestRunner.run(TC_MyTest) # not sure

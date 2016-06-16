@@ -1,9 +1,9 @@
 def authenticate
-  Hash['token' => 'TESTTOKEN'] # rcop
+  Hash['token' => 'TESTTOKEN']
 end
 
 def token_expiration_time
-  Time.new(2016, 1, 13, 11, 45, 34) # rcop
+  Time.new(2016, 1, 13, 11, 45, 34)
 end
 
 # Sends time to baseurl (TimeSync)
@@ -15,7 +15,7 @@ def create_time(p_dict)
   p_dict['revision'] = 1
   p_dict['notes'] = p_dict['notes'] ? p_dict['notes'] : nil
   p_dict['issue_uri'] = p_dict['issue_uri'] ? p_dict['issue_uri'] : nil
-  p_dict # rcop
+  p_dict
 end
 
 # Updates time by uuid
@@ -328,9 +328,21 @@ def get_users(username)
         'display_name' => 'X. Ample User',
         'email' => 'example@example.com',
         'active' => true,
-        'site_admin' => false,
-        'site_spectator' => false,
-        'site_manager' => false,
+        'site_admin' => if username == "admin"
+                          true
+                        else
+                          false
+                        end,
+        'site_spectator' => if username == "spectator"
+                              true
+                            else
+                              false
+                            end,
+        'site_manager' => if username == "manager"
+                            true
+                          else
+                            false
+                          end,
         'created_at' => '2015-02-29',
         'deleted_at' => nil
         ]

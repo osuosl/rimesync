@@ -75,9 +75,9 @@ class TimeSync # :nodoc:
 
     # Authenticate a username and password with TimeSync via a POST request
     # to the login endpoint. This method will return a list containing a
-    # single ruby dictionary. If successful, the dictionary will contain
+    # single ruby hash. If successful, the hash will contain
     # the token in the form [{'token': 'SOMETOKEN'}]. If an error is returned
-    # the dictionary will contain the error information.
+    # the hash will contain the error information.
 
     # ``username`` is a string containing the username of the TimeSync user
     # ``password`` is a string containing the user's password
@@ -122,7 +122,7 @@ class TimeSync # :nodoc:
       return mock_rimesync.authenticate
     end
 
-    # Send the request, then convert the resonse to a ruby dictionary
+    # Send the request, then convert the resonse to a ruby hash
     begin
       # Success!
       response = RestClient.post(url, auth_hash, :content_type => :json, :accept => :json)
@@ -148,10 +148,10 @@ class TimeSync # :nodoc:
 
     # Send a time entry to TimeSync via a POST request in a JSON body. This
     # method will return that body in the form of a list containing a single
-    # ruby dictionary. The dictionary will contain a representation of that
+    # ruby hash. The hash will contain a representation of that
     # JSON body if it was successful or error information if it was not.
 
-    # ``time`` is a ruby dictionary containing the time information to send
+    # ``time`` is a ruby hash containing the time information to send
     # to TimeSync.
     if time['duration'].to_i < 0
       return Hash[@error => 'time object: duration cannot be negative']
@@ -174,11 +174,11 @@ class TimeSync # :nodoc:
 
     # Send a time entry update to TimeSync via a POST request in a JSON body.
     # This method will return that body in the form of a list containing a
-    # single ruby dictionary. The dictionary will contain a representation
+    # single ruby hash. The hash will contain a representation
     # of that updated time object if it was successful or error information
     # if it was not.
 
-    # ``time`` is a ruby dictionary containing the time information to send
+    # ``time`` is a ruby hash containing the time information to send
     # to TimeSync.
     # ``uuid`` contains the uuid for a time entry to update.
     if time.key?('duration')
@@ -204,10 +204,10 @@ class TimeSync # :nodoc:
 
     # Post a project to TimeSync via a POST request in a JSON body. This
     # method will return that body in the form of a list containing a single
-    # ruby dictionary. The dictionary will contain a representation of that
+    # ruby hash. The hash will contain a representation of that
     # JSON body if it was successful or error information if it was not.
 
-    # ``project`` is a ruby dictionary containing the project information
+    # ``project`` is a ruby hash containing the project information
     # to send to TimeSync.
     return create_or_update(project, nil, 'project', 'projects')
   end
@@ -217,11 +217,11 @@ class TimeSync # :nodoc:
 
     # Send a project update to TimeSync via a POST request in a JSON body.
     # This method will return that body in the form of a list containing a
-    # single ruby dictionary. The dictionary will contain a representation
+    # single ruby hash. The hash will contain a representation
     # of that updated project object if it was successful or error
     # information if it was not.
 
-    # ``project`` is a ruby dictionary containing the project information
+    # ``project`` is a ruby hash containing the project information
     # to send to TimeSync.
     # ``slug`` contains the slug for a project entry to update.
     return create_or_update(project, slug, 'project', 'projects',
@@ -233,10 +233,10 @@ class TimeSync # :nodoc:
 
     # Post an activity to TimeSync via a POST request in a JSON body. This
     # method will return that body in the form of a list containing a single
-    # ruby dictionary. The dictionary will contain a representation of that
+    # ruby hash. The hash will contain a representation of that
     # JSON body if it was successful or error information if it was not.
 
-    # ``activity`` is a ruby dictionary containing the activity information
+    # ``activity`` is a ruby hash containing the activity information
     # to send to TimeSync.
     return create_or_update(activity, nil,
                             'activity', 'activities')
@@ -247,11 +247,11 @@ class TimeSync # :nodoc:
 
     # Send an activity update to TimeSync via a POST request in a JSON body.
     # This method will return that body in the form of a list containing a
-    # single ruby dictionary. The dictionary will contain a representation
+    # single ruby hash. The hash will contain a representation
     # of that updated activity object if it was successful or error
     # information if it was not.
 
-    # ``activity`` is a ruby dictionary containing the project information
+    # ``activity`` is a ruby hash containing the project information
     # to send to TimeSync.
     # ``slug`` contains the slug for an activity entry to update.
     return create_or_update(activity, slug,
@@ -264,28 +264,19 @@ class TimeSync # :nodoc:
 
     # Post a user to TimeSync via a POST request in a JSON body. This
     # method will return that body in the form of a list containing a single
-    # ruby dictionary. The dictionary will contain a representation of that
+    # ruby hash. The hash will contain a representation of that
     # JSON body if it was successful or error information if it was not.
 
-    # ``user`` is a ruby dictionary containing the user information to send
+    # ``user`` is a ruby hash containing the user information to send
     # to TimeSync.
     ary = %w(site_admin site_manager site_spectator active)
     ary.each do |perm|
       if user.key?(perm) && !(user[perm].is_a? Boolean)
-        return Hash[@error => 'user object: %s must be True or \
-          False' % perm]
+        return Hash[@error => 'user object: %s must be True or False' % perm]
       end
     end
 
-    # Only hash password if it is present
-    # Don't error out here so that internal methods can catch all missing
-    # fields later on and return a more meaningful error if necessary.
-    if user.key?('password')
-      # Hash the password
-      password = user['password']
-      hashed = BCrypt::Password.create(password)
-      user['password'] = hashed
-    end
+    hash_user_password(user)
     return create_or_update(user, nil, 'user', 'users')
   end
 
@@ -294,30 +285,21 @@ class TimeSync # :nodoc:
 
     # Send a user update to TimeSync via a POST request in a JSON body.
     # This method will return that body in the form of a list containing a
-    # single ruby dictionary. The dictionary will contain a representation
+    # single ruby hash. The hash will contain a representation
     # of that updated user object if it was successful or error
     # information if it was not.
 
-    # ``user`` is a ruby dictionary containing the user information to send
+    # ``user`` is a ruby hash containing the user information to send
     # to TimeSync.
     # ``username`` contains the username for a user to update.
     ary = %w(site_admin site_manager site_spectator active)
     ary.each do |perm|
       if user.key?(perm) && !(user[perm].is_a? Boolean)
-        return Hash[@error => 'user object: %s must be True \
-          or False' % perm]
+        return Hash[@error => 'user object: %s must be True or False' % perm]
       end
     end
 
-    # Only hash password if it is present
-    # Don't error out here so that internal methods can catch all missing
-    # fields later on and return a more meaningful error if necessary.
-    if user.key?('password')
-      # Hash the password
-      password = user['password']
-      hashed = BCrypt::Password.create(password)
-      user['password'] = hashed
-    end
+    hash_user_password(user)
     return create_or_update(user, username, 'user', 'users', false)
   end
 
@@ -329,7 +311,7 @@ class TimeSync # :nodoc:
     # JSON time information returned by TimeSync or an error message if
     # unsuccessful.
 
-    # ``query_parameters`` is a ruby dictionary containing the optional
+    # ``query_parameters`` is a ruby hash containing the optional
     # query parameters described in the TimeSync documentation. If
     # ``query_parameters`` is empty or nil, ``get_times`` will return all
     # times in the database. The syntax for each argument is
@@ -374,7 +356,7 @@ class TimeSync # :nodoc:
     end
 
     # Attempt to GET times, then convert the response to a ruby
-    # dictionary. Always returns a list.
+    # hash. Always returns a list.
     begin
       # Success!
       response = RestClient.get url
@@ -450,7 +432,7 @@ class TimeSync # :nodoc:
     end
 
     # Attempt to GET projects, then convert the response to a ruby
-    # dictionary. Always returns a list.
+    # hash. Always returns a list.
     begin
       # Success!
       response = RestClient.get url
@@ -470,7 +452,7 @@ class TimeSync # :nodoc:
     # the JSON activity information returned by TimeSync or an error message
     # if unsuccessful.
 
-    # ``query_parameters`` is a dictionary containing the optional query
+    # ``query_parameters`` is a hash containing the optional query
     # parameters described in the TimeSync documentation. If
     # ``query_parameters`` is empty or nil, ``get_activities`` will
     # return all activities in the database. The syntax for each argument is
@@ -524,7 +506,7 @@ class TimeSync # :nodoc:
     end
 
     # Attempt to GET activities, then convert the response to a ruby
-    # dictionary. Always returns a list.
+    # hash. Always returns a list.
     begin
       # Success!
       response = RestClient.get url
@@ -568,7 +550,7 @@ class TimeSync # :nodoc:
     end
 
     # Attempt to GET users, then convert the response to a ruby
-    # dictionary. Always returns a list.
+    # hash. Always returns a list.
     begin
       # Success!
       response = RestClient.get url
@@ -781,6 +763,21 @@ class TimeSync # :nodoc:
     return (@token ? nil : ('Not authenticated with TimeSync, call authenticate first'))
   end
 
+  # Hashes the password field in a user object.
+  # If the password is Unicode, encode it to UTF-8 first
+  def hash_user_password(user)
+    # Only hash password if it is present
+    # Don't error out here so that internal methods can catch all missing
+    # fields later on and return a more meaningful error if necessary.
+    if user.key?('password')
+      password = user["password"]
+
+      # Hash the password
+      hashed = BCrypt::Password.create(password)
+      user["password"] = hashed
+    end
+  end
+
   def response_to_ruby(response)
     # Convert response to native ruby list of objects
     # DELETE returns an empty body if successful
@@ -816,11 +813,13 @@ class TimeSync # :nodoc:
     elsif queries.key?('slug')
       # query_string = '/%s?' % queries['slug']
       query_string = format('/%s?', queries['slug'])
-      queries['slug'] = nil
+      queries.delete('slug')
     end
 
-    # Convert True and False booleans to TimeSync compatible strings
-    for k, v in sorted(queries.items, key=operator.itemgetter(0))
+    # Convert true and false booleans to TimeSync compatible strings
+
+    queries.sort_by {|item| item.first}
+    for k, v in sorted(queries.to_a, key = operator.itemgetter(0))
       queries[k] = v ? 'true' : 'false'
       query_list.push('%s=%s' % Array[k, queries[k]])
     end
@@ -868,20 +867,20 @@ class TimeSync # :nodoc:
                                queries['include_revisions'][0])
       end
 
-      # Everthing is a list now, so iterate through and append
+      # Everthing is a list now, so iterate through and push
     else
       # Sort them into an alphabetized list for easier testing
-      sorted_qs = sorted(queries.items, key = operator.itemgetter(0))
+      sorted_qs = sorted(queries.to_a, key = operator.itemgetter(0))
       for query, param in sorted_qs
         for slug in param
           # Format each query in the list
-          # query_list.append('%s=%s' % Array[query, slug])
-          query_list.append(format('%s=%s', query, slug))
+          # query_list.push('%s=%s' % Array[query, slug])
+          query_list.push(format('%s=%s', query, slug))
         end
       end
 
       # Construct the query_string using the list.
-      # Last character will be an & so we can append the token
+      # Last character will be an & so we can push the token
       for string in query_list
         query_string += '%s&' % string
       end
@@ -896,7 +895,7 @@ class TimeSync # :nodoc:
     # ``create_object`` then ``actual`` gets checked for required fields
     # Check that actual is a ruby dict
     unless actual.is_a? (Hash)
-      return '%s object: must be ruby dictionary' % object_name
+      return '%s object: must be ruby hash' % object_name
     end
 
     # missing_list contains a list of all the required parameters that were
@@ -932,7 +931,7 @@ class TimeSync # :nodoc:
                        object_name, endpoint, create_object = true)
     # Create or update an object ``object_name`` at specified ``endpoint``.
     # This method will return that object in the form of a list containing a
-    # single ruby dictionary. The dictionary will contain a representation
+    # single ruby hash. The hash will contain a representation
     # of the JSON body returned by TimeSync if it was successful or error
     # information if it was not. If ``create_object``, then ``parameters``
     # gets checked for required fields.
@@ -969,7 +968,7 @@ class TimeSync # :nodoc:
     end
 
     # Attempt to POST to TimeSync, then convert the response to a ruby
-    # dictionary
+    # hash
     begin
       # Success!
       response = RestClient.post(url, values, :content_type => :json, :accept => :json)

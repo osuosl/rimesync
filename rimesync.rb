@@ -20,8 +20,6 @@
 # Supported TimeSync versions:
 # v0
 
-# import operator
-
 require 'json'
 require_relative 'mock_rimesync'
 require 'bcrypt'
@@ -43,6 +41,7 @@ class TimeSync # :nodoc:
   # rubocop:disable MethodLength
   def initialize(baseurl, token = nil, test = false)
     # @baseurl = baseurl.chop if baseurl.end_with? "/" else baseurl
+    # @baseurl = baseurl.end_with? "/" ? baseurl.chop : baseurl
     @baseurl = baseurl
     @user = nil
     @password = nil
@@ -70,7 +69,7 @@ class TimeSync # :nodoc:
   end
 
   # rubocop:disable MethodLength
-  def authenticate(username = nil, password = nil, auth_type = nil)
+  def authenticate(username: nil, password: nil, auth_type: nil)
     # authenticate(username, password, auth_type)
 
     # Authenticate a username and password with TimeSync via a POST request
@@ -113,12 +112,12 @@ class TimeSync # :nodoc:
     auth_hash = Hash['auth' => auth].to_json
 
     # Construct the url with the login endpoint
-    url = '%s/login' % Array[@baseurl] # not sure about this?
-    # url = 'http://httpbin.org/post'
+    url = '%s/login' % Array[@baseurl]
+
 
     # Test mode, set token and return it from the mocked method
-    if @test
-      @token = 'TESTTOKEN'
+    if @test.nil?
+      @token = "TESTTOKEN"
       return mock_rimesync.authenticate
     end
 
@@ -126,6 +125,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.post(url, auth_hash, :content_type => :json, :accept => :json)
+      puts response
       token_response = response_to_ruby(response)
     rescue => e
       # Request error
@@ -153,10 +153,6 @@ class TimeSync # :nodoc:
 
     # ``time`` is a ruby hash containing the time information to send
     # to TimeSync.
-    if time['duration'].to_i < 0
-      return Hash[@error => 'time object: duration cannot be negative']
-    end
-
     unless time['duration'].is_a? Integer
       duration = duration_to_seconds(time['duration'])
       time['duration'] = duration
@@ -166,6 +162,11 @@ class TimeSync # :nodoc:
         return duration
       end
     end
+
+    if time['duration'] < 0
+      return Hash[@error => 'time object: duration cannot be negative']
+    end
+
     return create_or_update(time, nil, 'time', 'times')
   end
 
@@ -182,10 +183,6 @@ class TimeSync # :nodoc:
     # to TimeSync.
     # ``uuid`` contains the uuid for a time entry to update.
     if time.key?('duration')
-      if time['duration'] < 0
-        return Hash[@error => 'time object: duration cannot be negative']
-      end
-
       unless time['duration'].is_a? Integer
         duration = duration_to_seconds(time['duration'])
         time['duration'] = duration
@@ -195,6 +192,11 @@ class TimeSync # :nodoc:
           return duration
         end
       end
+
+      if time['duration'] < 0
+        return Hash[@error => 'time object: duration cannot be negative']
+      end
+
     end
     return create_or_update(time, uuid, 'time', 'times', false)
   end
@@ -292,6 +294,7 @@ class TimeSync # :nodoc:
     # ``user`` is a ruby hash containing the user information to send
     # to TimeSync.
     # ``username`` contains the username for a user to update.
+
     ary = %w(site_admin site_manager site_spectator active)
     ary.each do |perm|
       if user.key?(perm) && !(user[perm].is_a? Boolean)
@@ -317,15 +320,16 @@ class TimeSync # :nodoc:
     # times in the database. The syntax for each argument is
     # ``{'query': ['parameter']}``.
     # Check that user has authenticated
+
     @local_auth_error = local_auth_error
     if @local_auth_error
       return [Hash[@error => @local_auth_error]]
     end
 
     # Check for key error
-    if query_parameters
+    if !query_parameters.empty?
       for key, value in query_parameters
-        unless valid_get_queries.include?(key)
+        unless @valid_get_queries.include?(key)
           return [Hash[@error => 'invalid query: %s' % key]]
         end
       end
@@ -336,7 +340,7 @@ class TimeSync # :nodoc:
 
     # If there are filtering parameters, construct them correctly.
     # Else reinitialize the query string to a ? so we can add the token.
-    if query_parameters
+    if !query_parameters.empty?
       query_string = construct_filter_query(query_parameters)
     else
       query_string = '?'
@@ -348,7 +352,7 @@ class TimeSync # :nodoc:
 
     # Test mode, return one or many objects depending on if uuid is passed
     if @test
-      if query_parameters && query_parameters.key?('uuid')
+      if !query_parameters.empty? && query_parameters.key?('uuid')
         return mock_rimesync.get_times(query_parameters['uuid'])
       else
         return mock_rimesync.get_times(nil)
@@ -390,6 +394,7 @@ class TimeSync # :nodoc:
     # Does not accept a slug combined with include_deleted, but does accept
     # any other combination.
     # Check that user has authenticated
+
     @local_auth_error = local_auth_error
     if @local_auth_error
       return [Hash[@error => @local_auth_error]]
@@ -397,7 +402,7 @@ class TimeSync # :nodoc:
 
     # Save for passing to test mode since format_endpoints deletes
     # kwargs['slug'] if it exists
-    if query_parameters && query_parameters.key?('slug')
+    if !query_parameters.empty? && query_parameters.key?('slug')
       slug = query_parameters['slug']
     else
       slug = nil
@@ -407,7 +412,7 @@ class TimeSync # :nodoc:
 
     # If kwargs exist, create a correct query string
     # Else, prepare query_string for the token
-    if query_parameters
+    if !query_parameters.empty?
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
@@ -419,7 +424,6 @@ class TimeSync # :nodoc:
       query_string = '?token=%s' % @token
     end
 
-    puts query_string
     # Construct query url - at this point query_string ends with
     # ?token=token
     url = '%s/projects%s' % Array[@baseurl, query_string]
@@ -473,7 +477,7 @@ class TimeSync # :nodoc:
 
     # Save for passing to test mode since format_endpoints deletes
     # kwargs['slug'] if it exists
-    if query_parameters && query_parameters.key?('slug')
+    if !query_parameters.empty? && query_parameters.key?('slug')
       slug = query_parameters['slug']
     else
       slug = nil
@@ -483,7 +487,7 @@ class TimeSync # :nodoc:
 
     # If kwargs exist, create a correct query string
     # Else, prepare query_string for the token
-    if query_parameters
+    if !query_parameters.empty?
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
@@ -645,7 +649,7 @@ class TimeSync # :nodoc:
     return delete_object('users', username)
   end
 
-  def token_expiration_time # work on this
+  def token_expiration_time
     # token_expiration_time
     # Returns the expiration time of the JWT (JSON Web Token) associated with
     # this object.
@@ -704,12 +708,14 @@ class TimeSync # :nodoc:
     if @test
       return mock_rimesync.project_users
     end
-
     # Try to get the project object
     begin
       # Success!
-      response = RestClient.get url
+      response = RestClient.get(url)
+      puts response
+      puts "======"
       project_object = response_to_ruby(response)
+      puts project_object
     rescue => e
       # Request Error
       return Hash[@error => e]
@@ -769,19 +775,20 @@ class TimeSync # :nodoc:
     # Only hash password if it is present
     # Don't error out here so that internal methods can catch all missing
     # fields later on and return a more meaningful error if necessary.
-    if user.key?('password')
-      password = user["password"]
+    if user.key?(:password)
+      password = user[:password]
 
       # Hash the password
-      hashed = BCrypt::Password.create(password)
-      user["password"] = hashed
+      hashed = BCrypt::Password.create(:password)
+
+      user[:password] = hashed
     end
   end
 
   def response_to_ruby(response)
     # Convert response to native ruby list of objects
     # DELETE returns an empty body if successful
-    if response.instance_variable_get(:@body).nil? && response.instance_variable_get(:@code) == 200
+    if response.instance_variable_get(:@body).empty? && response.instance_variable_get(:@code) == 200
       return Hash['status' => 200]
     end
 
@@ -789,8 +796,8 @@ class TimeSync # :nodoc:
     # and we got a ValueError, we know we are having trouble connecting to
     # TimeSync because we are not getting a return from TimeSync.
     begin
-      ruby_object = JSON.load(response.instance_variabel_get(:@body))
-    rescue Exception => e
+      ruby_object = response.instance_variable_get(:@body)
+    rescue => e
       # If we get a ValueError, response.body isn't a JSON object, and
       # therefore didn't come from a TimeSync connection.
       err_msg = 'connection to TimeSync failed at baseurl %s - ' % @baseurl
@@ -817,12 +824,13 @@ class TimeSync # :nodoc:
     end
 
     # Convert true and false booleans to TimeSync compatible strings
-
-    queries.sort_by {|item| item.first}
-    for k, v in sorted(queries.to_a, key = operator.itemgetter(0))
-      queries[k] = v ? 'true' : 'false'
-      query_list.push('%s=%s' % Array[k, queries[k]])
+    for k, v in queries.to_a
+      queries[k] = v ? "true" : "false"
+      query_list.push("%s=%s" % Array[k, queries[k]])
     end
+
+    query_list = query_list.sort
+
     # Check for items in query_list after slug was removed, create
     # query string
     if query_list
@@ -835,7 +843,7 @@ class TimeSync # :nodoc:
     query_string
   end
 
-  def construct_filter_query(queries) # work on this
+  def construct_filter_query(queries)
     # Construct the query string for filtering GET queries, such as get_times
     query_string = '?'
     query_list = Array[]
@@ -870,7 +878,8 @@ class TimeSync # :nodoc:
       # Everthing is a list now, so iterate through and push
     else
       # Sort them into an alphabetized list for easier testing
-      sorted_qs = sorted(queries.to_a, key = operator.itemgetter(0))
+      # sorted_qs = sorted(queries.to_a, key = operator.itemgetter(0))
+      sorted_qs = queriest.to_a.sort
       for query, param in sorted_qs
         for slug in param
           # Format each query in the list
@@ -906,7 +915,6 @@ class TimeSync # :nodoc:
     # If it is requried, remove that parameter from the missing_list, since
     # it is no longer missing
     # actual.each do |key, value|
-    puts actual
 
     for key, value in actual
       if !@required_params[object_name].include?key.to_s and !@optional_params[object_name].include?key.to_s
@@ -915,7 +923,9 @@ class TimeSync # :nodoc:
 
       # Remove field from copied list if the field is in required
       if @required_params[object_name].include? key.to_s
-        print missing_list.delete(key.to_s)
+        # missing_list.delete(key.to_s)
+        missing_list.delete_at(missing_list.index(key))
+        puts missing_list
       end
     end
 
@@ -930,7 +940,7 @@ class TimeSync # :nodoc:
   end
 
   def create_or_update(object_fields, identifier,
-                       object_name, endpoint, create_object = true)
+                       object_name, endpoint, create_object: true)
     # Create or update an object ``object_name`` at specified ``endpoint``.
     # This method will return that object in the form of a list containing a
     # single ruby hash. The hash will contain a representation
@@ -945,6 +955,7 @@ class TimeSync # :nodoc:
       return Hash[@error => @local_auth_error]
     end
 
+    # puts object_fields
     # Check that object contains required fields and no bad fields
     field_error = get_field_errors(object_fields, object_name, create_object)
 
@@ -991,6 +1002,13 @@ class TimeSync # :nodoc:
       t = Time.strptime(duration, '%Hh%Mm')
       hours_spent = t.hour
       minutes_spent = t.min
+
+      temp = "%sh%sm" % [hours_spent, minutes_spent]
+
+      if temp != duration
+          error_msg = [Hash[@error => "time object: invalid duration string"]]
+          return error_msg
+      end
 
       # Convert duration to seconds
       return (hours_spent * 3600) + (minutes_spent * 60)

@@ -138,10 +138,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                  Hash[@ts.instance_variable_get(:@error) => 'time object: invalid field: bad'])
   end
 
+  # Tests TimeSync._TimeSync__create_or_update for
+  # create time with missing required fields
   def test_create_or_update_create_time_two_required_missing
     # Parameters to be sent to TimeSync
     time = Hash[
-        'duration' => 12,
         'user' => 'example-user',
         'notes' => 'Worked on docs',
         'issue_uri' => 'https://github.com/',
@@ -149,19 +150,18 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     assert_equal(@ts.create_or_update(time, nil, 'time', 'times'),
-                 [Hash[@ts.instance_variable_get(:@error) =>
-                       'time object: missing required field(s): project, activities']])
+                 Hash[@ts.instance_variable_get(:@error) =>
+                       'time object: missing required field(s): duration, project'])
   end
 
   # Tests TimeSync.create_or_update
   # to create time with missing required fields
-  def test_create_or_update_create_time_each_required_missing
+  def test_create_or_update_create_time_each_required_missing # NOT WORKING
     # Parameters to be sent to TimeSync
     time = Hash[
         'duration' => 12,
         'project' => 'ganeti-web-manager',
         'user' => 'example-user',
-        'activities' => ['documenting'],
         'date_worked' => '2014-04-17'
     ]
 
@@ -309,14 +309,15 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'password' => 'password',
     ]
 
-    user_to_test = Hash[user]
+    user_to_test = user
 
     for key, value in user
-      user_to_test.delete(key)
+      user_to_test.delete(key)  # delete mutates the hash
       assert_equal(@ts.create_or_update(
                    user_to_test, nil, 'user', 'users'),
                    Hash[@ts.instance_variable_get(:@error) => 'user object: missing required field(s): %s' % key])
-      user_to_test = Hash[user]
+      user_to_test = user
+      puts user_to_test
     end
   end
 
@@ -1234,19 +1235,18 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     ruby_object = Hash[
-      'id' => 'a034806c-00db-4fe1-8de8-514575f31bfb',
-      'pdated_at' => '2014-07-20',
+      'uuid' => 'a034806c-00db-4fe1-8de8-514575f31bfb',
+      'updated_at' => '2014-07-20',
       'created_at' => '2014-07-17',
-      'ri' => 'https://code.ososl.org/projects/ganeti-webmgr',
+      'uri' => 'https://code.osuosl.org/projects/ganeti-webmgr',
       'name' => 'Ganeti Web Manager',
-      'owner' => 'example-ser',
+      'owner' => 'example-user',
       'deleted_at' => nil,
-      'slgs' => %w(ganeti gwm),
+      'slugs' => %w(ganeti gwm),
       'revision' => 4
     ]
 
     response = Resp.new
-    # response.body = json_object
     response.instance_variable_set(:@body, json_object)
 
     assert_equal(@ts.response_to_ruby(response), ruby_object)
@@ -1316,7 +1316,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     ]
 
     response = Resp.new
-    response.body = json_object
+    response.instance_variable_set(:@body, json_object)
 
     assert_equal(@ts.response_to_ruby(response), ruby_object)
   end
@@ -1548,10 +1548,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'active': true,
     ]
 
-    @ts.update_user(user, user['username'])
+    @ts.update_user(user, user[:username])
 
-    assert_equal(BCrypt.hashpw(user['password'], user['password']),
-                      user['password'])
+    assert_equal(BCrypt::Password.create(user[:password]), user[:password])
   end
 
   def test_hash_user_password
@@ -1563,8 +1562,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     @ts.hash_user_password(user)
 
-    assert_equal(BCrypt.hashpw(user["password"], user["password"]),
-                 user["password"])
+    assert_equal(BCrypt::Password.create(user[:password]), user[:password])
   end
 
 
@@ -1586,7 +1584,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     stub_request(:post, url).with(body: auth)
 
-    @ts.authenticate('example-user', 'password', 'password')
+    @ts.authenticate(username: 'example-user', password: 'password', auth_type: 'password')
   end
 
   # Tests authenticate method with a token return
@@ -1594,7 +1592,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:post, /.*/)
     .to_return(:body => JSON.dump([Hash['token' => 'sometoken']]))
 
-    auth_block = @ts.authenticate('example-user', 'password', 'password')
+    auth_block = @ts.authenticate(username: 'example-user', password: 'password', auth_type: 'password')
 
     assert_equal(auth_block['token'], @ts.instance_variable_get(:@token), 'sometoken')
     assert_equal(auth_block, Hash['token' => 'sometoken'])
@@ -1607,7 +1605,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                                    'error' => 'Authentication failure',
                                    'text' => 'Invalid username or password']]))
 
-    auth_block = @ts.authenticate('example-user', 'password', 'password')
+    auth_block = @ts.authenticate(username: 'example-user', password: 'password', auth_type: 'password')
 
     assert_equal(auth_block,
                  Hash['status' => 401,
@@ -1617,42 +1615,42 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests authenticate method with no username in call
   def test_authentication_no_username
-    assert_equal(@ts.authenticate(username = nil, password = 'password', auth_type = 'password'),
+    assert_equal(@ts.authenticate(password: 'password', auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username; please add to method call'])
   end
 
   # Tests authenticate method with no password in call
   def test_authentication_no_password
-    assert_equal(@ts.authenticate(username = 'username', password = nil, auth_type = 'password'),
+    assert_equal(@ts.authenticate(username: 'username', auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password; please add to method call'])
   end
 
   # Tests authenticate method with no auth_type in call
   def test_authentication_no_auth_type
-    assert_equal(@ts.authenticate(username = 'username', password = 'password', auth_type = nil),
+    assert_equal(@ts.authenticate(username: 'username', password: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or password in call
   def test_authentication_no_username_or_password
-    assert_equal(@ts.authenticate(username = nil, password = nil, auth_type = 'password'),
+    assert_equal(@ts.authenticate(auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, password; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_username_or_auth_type
-    assert_equal(@ts.authenticate(username = nil, password = 'password', auth_type = nil),
+    assert_equal(@ts.authenticate(password: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_password_or_auth_type
-    assert_equal(@ts.authenticate(username = 'username', password = nil, auth_type = nil),
+    assert_equal(@ts.authenticate(username: 'username'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password, auth_type; please add to method call'])
   end
@@ -1672,8 +1670,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     # stub_request(:post, /.*/).to_return(:status => 502)
     stub_request(:post, /.*/).to_return(response)
 
-    assert_equal(@ts.authenticate(username = 'username', password = 'password',
-                                 auth_type = 'password'),
+    assert_equal(@ts.authenticate(username: 'username', password: 'password',
+                                 auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at baseurl http://ts.example.com/v0 - response status was 502'])
   end
 
@@ -1738,7 +1736,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test that delete_time returns proper error on authentication failure
   def test_delete_time_no_auth
     @ts.instance_variable_set(:@token, nil)
-    assert_equal(@ts.delete_time('abcd-3453-3de3-99sh'),
+    assert_equal(@ts.delete_time(uuid: 'abcd-3453-3de3-99sh'),
                  Hash['rimesync error' => 'Not authenticated with TimeSync, call authenticate first'])
   end
 
@@ -1891,19 +1889,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       response = Resp.new
       response.instance_variable_set(:@code, 200)
 
-      expected_result = Hash[
-          'malcolm' => ['member', 'manager', 'spectator'],
-          'jayne' =>   ['member'],
-          'kaylee' =>  ['member'],
-          'zoe' =>     ['member'],
-          'hoban' =>   ['member'],
-          'simon' =>   ['spectator'],
-          'river' =>   ['spectator'],
-          'derrial' => ['spectator'],
-          'inara' =>   ['spectator']
-      ]
-
-      stub_request(:get, /.*/).to_return(:body => JSON.dump(Hash[
+      response.instance_variable_set(:@body, JSON.dump(Hash[
           "uri" => "https://github.com/osuosl/pymesync",
           "name" => "pymesync",
           "slugs" => ["pyme", "ps", "pymesync"],
@@ -1943,6 +1929,20 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
           ]
       ]))
 
+      expected_result = Hash[
+          'malcolm' => ['member', 'manager', 'spectator'],
+          'jayne' =>   ['member'],
+          'kaylee' =>  ['member'],
+          'zoe' =>     ['member'],
+          'hoban' =>   ['member'],
+          'simon' =>   ['spectator'],
+          'river' =>   ['spectator'],
+          'derrial' => ['spectator'],
+          'inara' =>   ['spectator']
+      ]
+
+      stub_request(:get, /.*/).to_return(:body)
+
       assert_equal(@ts.project_users(project=project), expected_result)
     end
 
@@ -1950,18 +1950,12 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test project_users method with an error object returned from TimeSync
   def test_project_users_error_response
     proj = 'rimes'
-    # response = Resp.new
-    # response.instance_variable_set(:@code, 404)
-    # response.body = JSON.dump(Hash[
-    #     'error' => 'Object not found',
-    #     'text' => 'nilxistent project'
-    # ])
+    response = Resp.new
+    response.instance_variable_set(:@code, 404)
 
-    # Mock requests.get so it doesn't actually post to TimeSync
-    # requests.get = mock.create_autospec(requests.get,
-    #                                     return_value = response)
+    response.instance_variable_set(:@body, JSON.dump([Hash['error' => 'Object not found', 'text' => 'nilxistent project']]))
 
-    stub_request(:get, /.*/).to_return(:body => JSON.dump([Hash['error' => 'Object not found', 'text' => 'nilxistent project']]))
+    stub_request(:get, /.*/).to_return(response)
 
     assert_equal(@ts.project_users(project = proj),
                  Hash['error' => 'Object not found',
@@ -1978,13 +1972,13 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that the trailing slash in the baseurl is removed
   def test_baseurl_with_trailing_slash
-    @ts = TimeSync.new('http://ts.example.com/v1/')
-    assert_equal(@ts.instance_variable_get(:@baseurl), 'http://ts.example.com/v1')
+    @ts = TimeSync.new('http://ts.example.com/v0/')
+    assert_equal(@ts.instance_variable_get(:@baseurl), 'http://ts.example.com/v0')
   end
 
   # Test that the trailing slash in the baseurl is removed
   def test_baseurl_without_trailing_slash
-    @ts = TimeSync.new('http://ts.example.com/v1')
-    assert_equal(@ts.instance_variable_get(:@baseurl), 'http://ts.example.com/v1')
+    @ts = TimeSync.new('http://ts.example.com/v0')
+    assert_equal(@ts.instance_variable_get(:@baseurl), 'http://ts.example.com/v0')
   end
 end

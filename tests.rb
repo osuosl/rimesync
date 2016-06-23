@@ -5,13 +5,7 @@ require 'bcrypt'
 require 'base64'
 require 'rest-client'
 require 'webmock/test_unit'
-
-class Resp # :nodoc:
-  def initialize
-    @body = nil
-    @code = nil
-  end
-end
+require 'mocha/test_unit'
 
 # rubocop:disable ClassLength
 class TestRimeSync < Test::Unit::TestCase # :nodoc:
@@ -26,7 +20,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Test that instantiating rimesync with a token sets the token variable
   def test_instantiate_with_token
-    @ts = TimeSync.new('baseurl', token = 'TOKENTOCHECK') # not sure about "@"ts
+    @ts = TimeSync.new(baseurl = 'baseurl', token = 'TOKENTOCHECK')
     assert_equal(@ts.instance_variable_get(:@token), 'TOKENTOCHECK')
   end
 
@@ -156,7 +150,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests TimeSync.create_or_update
   # to create time with missing required fields
-  def test_create_or_update_create_time_each_required_missing # NOT WORKING
+  def test_create_or_update_create_time_each_required_missing
     # Parameters to be sent to TimeSync
     time = Hash[
         'duration' => 12,
@@ -165,14 +159,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'date_worked' => '2014-04-17'
     ]
 
-    time_to_test = Hash[time]
+    time_to_test = time.clone
 
     for key, value in time
       time_to_test.delete(key)
       assert_equal(@ts.create_or_update(
                      time_to_test, nil, 'time', 'times'),
                    Hash[@ts.instance_variable_get(:@error) => 'time object: missing required field(s): %s' % key])
-      time_to_test = Hash[time]
+      time_to_test = time.clone
     end
   end
 
@@ -309,15 +303,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'password' => 'password',
     ]
 
-    user_to_test = user
+    user_to_test = user.clone
 
     for key, value in user
       user_to_test.delete(key)  # delete mutates the hash
       assert_equal(@ts.create_or_update(
                    user_to_test, nil, 'user', 'users'),
                    Hash[@ts.instance_variable_get(:@error) => 'user object: missing required field(s): %s' % key])
-      user_to_test = user
-      puts user_to_test
+      user_to_test = user.clone
     end
   end
 
@@ -468,14 +461,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       'slugs' => %w(timesync time),
     ]
 
-    project_to_test = Hash[project]
+    project_to_test = project.clone
 
     for key, value in project
       project_to_test.delete(key)
       assert_equal(@ts.create_or_update(
                         project_to_test, nil, 'project', 'projects'),
                         Hash[@ts.instance_variable_get(:@error) => 'project object: missing required field(s): %s' % key])
-      project_to_test = Hash[project]
+      project_to_test = project.clone
     end
   end
 
@@ -604,14 +597,14 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         'slug' => 'qa'
     ]
 
-    activity_to_test = Hash[activity]
+    activity_to_test = activity.clone
 
     for key, value in activity
       activity_to_test.delete(key)
       assert_equal(@ts.create_or_update(
                    activity_to_test, nil, 'activity', 'activities'),
                    Hash[@ts.instance_variable_get(:@error) => 'activity object: missing required field(s): %s' % key])
-      activity_to_test = Hash[activity]
+      activity_to_test = activity.clone
     end
   end
 
@@ -979,7 +972,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     url = '%s/projects?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
                                            @ts.instance_variable_get(:@token)]
     stub_request(:get, /.*projects.*/)
-    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
+    .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
     assert_equal(@ts.get_projects,
                  [Hash['this' => 'should be in a list']])
@@ -1191,6 +1184,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     # response.body = json.dump(Hash['this' => 'should be in a list'])
     url = '%s/users?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
                                       @ts.instance_variable_get(:@token)]
+
     stub_request(:get, url)
     .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
 
@@ -1204,19 +1198,18 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     url = '%s/users/%s?token=%s' % Array[@ts.instance_variable_get(:@baseurl),
                                          'example-user', @ts.instance_variable_get(:@token)]
     stub_request(:get, /.*users.*/)
-    .to_return(:body => JSON.dump([Hash['this' => 'should be in a list']]))
+    .to_return(:body => JSON.dump(Hash['this' => 'should be in a list']))
 
     # Send it
-    assert_equal(@ts.get_users('example-user'),
+    assert_equal(@ts.get_users(username = 'example-user'),
                  [Hash['this' => 'should be in a list']])
   end
 
   # Test that get_users returns error message when auth not set
-  def test_get_users_no_auth # ERROR
-    @ts.instance_variable_set(:@token, 'nil')
+  def test_get_users_no_auth
+    @ts.instance_variable_set(:@token, nil)
     assert_equal(@ts.get_users,
-                 [Hash[@ts.instance_variable_get(:@error) => 'Not authenticated with TimeSync, \
-                                    call authenticate first']])
+                 [Hash[@ts.instance_variable_get(:@error) => 'Not authenticated with TimeSync, call authenticate first']])
   end
 
   # Test that TimeSync.response_to_ruby
@@ -1246,10 +1239,10 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
       'revision' => 4
     ]
 
-    response = Resp.new
-    response.instance_variable_set(:@body, json_object)
+    body = JSON.dump(json_object)
+    code = nil
 
-    assert_equal(@ts.response_to_ruby(response), ruby_object)
+    assert_equal(@ts.response_to_ruby(body, code), ruby_object)
   end
 
   # Test that TimeSync.response_to_ruby
@@ -1315,44 +1308,19 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
         ]
     ]
 
-    response = Resp.new
-    response.instance_variable_set(:@body, json_object)
+    body = JSON.dump(json_object)
+    code = nil
 
-    assert_equal(@ts.response_to_ruby(response), ruby_object)
+    assert_equal(@ts.response_to_ruby(body, code), ruby_object)
   end
 
   # Check that response_to_ruby returns correctly for delete_*G methods
   def test_response_to_ruby_empty_response
-    response = Resp.new
-    response.instance_variable_set(:@body, '')
-    response.instance_variable_set(:@code, 200)
-    assert_equal(@ts.response_to_ruby(response),
+    body = ''
+    code = 200
+    assert_equal(@ts.response_to_ruby('', 200),
                  Hash['status' => 200])
   end
-
-
-  # Tests that TimeSync.create_time calls _create_or_update with correct parameters
-  # @patch("pymesync.TimeSync._TimeSync__create_or_update")
-  # def test_create_time
-  #   time = Hash[
-  #       'duration': 12,
-  #       'project': 'ganeti-web-manager',
-  #       'user': 'example-user',
-  #       'activities': ['documenting'],
-  #       'notes': 'Worked on docs',
-  #       'issue_uri': 'https://github.com/',
-  #       'date_worked': '2014-04-17',
-  #   ]
-
-  #   @ts.create_time(time)
-
-  #   mock_create_or_update.assert_called_with(time, None, "time", "times")
-  # end
-
-
-  # @patch('rimesync.TimeSync.create_or_update')
-  # def test_update_time(self, mock_create_or_update):
-  # end
 
   # Tests that TimeSync.create_time will return an error
   # if a negative duration is passed
@@ -1515,44 +1483,6 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     end
   end
 
-  # Tests that unicode password objects get
-  # encoded to UTF-8 before being hashed
-  def test_create_user_unicode_password
-    user = Hash[
-        'username': 'example-user',
-        'password': 'password',
-        'display_name': 'Example User',
-        'email': 'example.user@example.com',
-        'site_admin': true,
-        'site_spectator': false,
-        'site_manager': true,
-        'active': true,
-    ]
-
-    @ts.create_user(user)
-
-    assert_equal(BCrypt.hashpw(user['password'], user['password']),  # research this
-                      user['password'])
-  end
-
-  # Tests that unicode password objects get encoded to UTF-8 before being hashed
-  def test_update_user_unicode_password
-    user = Hash[
-        'username': 'example-user',
-        'password': 'password',
-        'display_name': 'Example User',
-        'email': 'example.user@example.com',
-        'site_admin': true,
-        'site_spectator': false,
-        'site_manager': true,
-        'active': true,
-    ]
-
-    @ts.update_user(user, user[:username])
-
-    assert_equal(BCrypt::Password.create(user[:password]), user[:password])
-  end
-
   def test_hash_user_password
     # Tests that passwords are hashed correctly
     user = Hash[
@@ -1590,9 +1520,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests authenticate method with a token return
   def test_authentication_return_success
     stub_request(:post, /.*/)
-    .to_return(:body => JSON.dump([Hash['token' => 'sometoken']]))
+    .to_return(:body => JSON.dump(Hash['token' => 'sometoken']))
 
-    auth_block = @ts.authenticate(username: 'example-user', password: 'password', auth_type: 'password')
+    auth_block = @ts.authenticate(username = 'example-user', password = 'password', auth_type = 'password')
 
     assert_equal(auth_block['token'], @ts.instance_variable_get(:@token), 'sometoken')
     assert_equal(auth_block, Hash['token' => 'sometoken'])
@@ -1601,11 +1531,11 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Tests authenticate method with an error return
   def test_authentication_return_error
     stub_request(:post, /.*/)
-    .to_return(:body => JSON.dump([Hash['status' => 401,
+    .to_return(:body => JSON.dump(Hash['status' => 401,
                                    'error' => 'Authentication failure',
-                                   'text' => 'Invalid username or password']]))
+                                   'text' => 'Invalid username or password']))
 
-    auth_block = @ts.authenticate(username: 'example-user', password: 'password', auth_type: 'password')
+    auth_block = @ts.authenticate(username = 'example-user', password = 'password', auth_type = 'password')
 
     assert_equal(auth_block,
                  Hash['status' => 401,
@@ -1615,42 +1545,42 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests authenticate method with no username in call
   def test_authentication_no_username
-    assert_equal(@ts.authenticate(password: 'password', auth_type: 'password'),
+    assert_equal(@ts.authenticate(password = 'password', auth_type = 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username; please add to method call'])
   end
 
   # Tests authenticate method with no password in call
   def test_authentication_no_password
-    assert_equal(@ts.authenticate(username: 'username', auth_type: 'password'),
+    assert_equal(@ts.authenticate(username = 'username', auth_type = 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password; please add to method call'])
   end
 
   # Tests authenticate method with no auth_type in call
   def test_authentication_no_auth_type
-    assert_equal(@ts.authenticate(username: 'username', password: 'password'),
+    assert_equal(@ts.authenticate(username = 'username', password = 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or password in call
   def test_authentication_no_username_or_password
-    assert_equal(@ts.authenticate(auth_type: 'password'),
+    assert_equal(@ts.authenticate(auth_type = 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, password; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_username_or_auth_type
-    assert_equal(@ts.authenticate(password: 'password'),
+    assert_equal(@ts.authenticate(password = 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_password_or_auth_type
-    assert_equal(@ts.authenticate(username: 'username'),
+    assert_equal(@ts.authenticate(username = 'username'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password, auth_type; please add to method call'])
   end
@@ -1664,14 +1594,10 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests authenticate method with no token in response
   def test_authentication_no_token_in_response
-    response = Resp.new
-    response.instance_variable_set(:@status_code, 502)
+    stub_request(:post, /.*/).to_return(:status => 502)
 
-    # stub_request(:post, /.*/).to_return(:status => 502)
-    stub_request(:post, /.*/).to_return(response)
-
-    assert_equal(@ts.authenticate(username: 'username', password: 'password',
-                                 auth_type: 'password'),
+    assert_equal(@ts.authenticate(username = 'username', password = 'password',
+                                 auth_type = 'password'),
                  Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at baseurl http://ts.example.com/v0 - response status was 502'])
   end
 
@@ -1690,10 +1616,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test that pymesync doesn't break when
   # getting a response that is not a JSON object
   def test_handle_other_connection_response
-    response = Resp.new
-    response.instance_variable_set(:@code, 502)
-
-    assert_equal(@ts.response_to_ruby(response),
+    body = 'NOTAJSONOBJECT'
+    code = 502
+    assert_equal(@ts.response_to_ruby(body, code),
                  Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at baseurl http://ts.example.com/v0 - response status was 502'])
   end
 
@@ -1852,13 +1777,13 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # is a negative int, an error message is returned
   def test_duration_invalid
     time = Hash[
-        'duration': -12600,
-        'project': 'ganeti-web-manager',
-        'user': 'example-user',
-        'activities': ['documenting'],
-        'notes': 'Worked on docs',
-        'issue_uri': 'https://github.com/',
-        'date_worked': '2014-04-17',
+        'duration' => -12600,
+        'project' => 'ganeti-web-manager',
+        'user' => 'example-user',
+        'activities' => ['documenting'],
+        'notes' => 'Worked on docs',
+        'issue_uri' => 'https://github.com/',
+        'date_worked' => '2014-04-17',
     ]
     assert_equal(@ts.create_time(time),
                  Hash[@ts.instance_variable_get(:@error) =>'time object: duration cannot be negative'])
@@ -1886,10 +1811,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test project_users method with a valid project object returned from TimeSync
   def test_project_users_valid
       project = "rime"
-      response = Resp.new
-      response.instance_variable_set(:@code, 200)
 
-      response.instance_variable_set(:@body, JSON.dump(Hash[
+      body = JSON.dump(Hash[
           "uri" => "https://github.com/osuosl/pymesync",
           "name" => "pymesync",
           "slugs" => ["pyme", "ps", "pymesync"],
@@ -1927,7 +1850,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                           "manager" => false,
                           "spectator" => true]
           ]
-      ]))
+      ])
 
       expected_result = Hash[
           'malcolm' => ['member', 'manager', 'spectator'],
@@ -1941,7 +1864,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
           'inara' =>   ['spectator']
       ]
 
-      stub_request(:get, /.*/).to_return(:body)
+      stub_request(:get, /.*/).to_return(body: body)
 
       assert_equal(@ts.project_users(project=project), expected_result)
     end
@@ -1950,12 +1873,9 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test project_users method with an error object returned from TimeSync
   def test_project_users_error_response
     proj = 'rimes'
-    response = Resp.new
-    response.instance_variable_set(:@code, 404)
+    body = JSON.dump(Hash['error' => 'Object not found', 'text' => 'nilxistent project'])
 
-    response.instance_variable_set(:@body, JSON.dump([Hash['error' => 'Object not found', 'text' => 'nilxistent project']]))
-
-    stub_request(:get, /.*/).to_return(response)
+    stub_request(:get, /.*/).to_return(body: body)
 
     assert_equal(@ts.project_users(project = proj),
                  Hash['error' => 'Object not found',

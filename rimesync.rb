@@ -40,9 +40,11 @@ end
 class TimeSync # :nodoc:
   # rubocop:disable MethodLength
   def initialize(baseurl, token = nil, test = false)
-    # @baseurl = baseurl.chop if baseurl.end_with? "/" else baseurl
-    # @baseurl = baseurl.end_with? "/" ? baseurl.chop : baseurl
-    @baseurl = baseurl
+    if baseurl.end_with? "/"
+      @baseurl = baseurl.chop
+    else
+      @baseurl = baseurl
+    end
     @user = nil
     @password = nil
     @auth_type = nil
@@ -69,7 +71,7 @@ class TimeSync # :nodoc:
   end
 
   # rubocop:disable MethodLength
-  def authenticate(username: nil, password: nil, auth_type: nil)
+  def authenticate(username = nil, password = nil, auth_type = nil)
     # authenticate(username, password, auth_type)
 
     # Authenticate a username and password with TimeSync via a POST request
@@ -116,7 +118,7 @@ class TimeSync # :nodoc:
 
 
     # Test mode, set token and return it from the mocked method
-    if @test.nil?
+    if @test
       @token = "TESTTOKEN"
       return mock_rimesync.authenticate
     end
@@ -125,8 +127,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.post(url, auth_hash, :content_type => :json, :accept => :json)
-      puts response
-      token_response = response_to_ruby(response)
+      token_response = response_to_ruby(response.body, response.code)
     rescue => e
       # Request error
       return Hash[@error => e]
@@ -153,6 +154,7 @@ class TimeSync # :nodoc:
 
     # ``time`` is a ruby hash containing the time information to send
     # to TimeSync.
+
     unless time['duration'].is_a? Integer
       duration = duration_to_seconds(time['duration'])
       time['duration'] = duration
@@ -327,7 +329,7 @@ class TimeSync # :nodoc:
     end
 
     # Check for key error
-    if !query_parameters.empty?
+    if !query_parameters.nil?
       for key, value in query_parameters
         unless @valid_get_queries.include?(key)
           return [Hash[@error => 'invalid query: %s' % key]]
@@ -340,19 +342,18 @@ class TimeSync # :nodoc:
 
     # If there are filtering parameters, construct them correctly.
     # Else reinitialize the query string to a ? so we can add the token.
-    if !query_parameters.empty?
+    if !query_parameters.nil?
       query_string = construct_filter_query(query_parameters)
     else
       query_string = '?'
     end
 
-    # puts query_string
     # Construct query url, at this point query_string ends with a ?
     url = '%s/times%stoken=%s' % Array[@baseurl, query_string, @token]
 
     # Test mode, return one or many objects depending on if uuid is passed
     if @test
-      if !query_parameters.empty? && query_parameters.key?('uuid')
+      if !query_parameters.nil? && query_parameters.key?('uuid')
         return mock_rimesync.get_times(query_parameters['uuid'])
       else
         return mock_rimesync.get_times(nil)
@@ -364,7 +365,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.get url
-      res_dict = response_to_ruby(response)
+      res_dict = response_to_ruby(response.body, response.code)
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
@@ -402,7 +403,7 @@ class TimeSync # :nodoc:
 
     # Save for passing to test mode since format_endpoints deletes
     # kwargs['slug'] if it exists
-    if !query_parameters.empty? && query_parameters.key?('slug')
+    if !query_parameters.to_s.empty? && query_parameters.key?('slug')
       slug = query_parameters['slug']
     else
       slug = nil
@@ -412,7 +413,7 @@ class TimeSync # :nodoc:
 
     # If kwargs exist, create a correct query string
     # Else, prepare query_string for the token
-    if !query_parameters.empty?
+    if !query_parameters.to_s.empty?
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
@@ -427,7 +428,6 @@ class TimeSync # :nodoc:
     # Construct query url - at this point query_string ends with
     # ?token=token
     url = '%s/projects%s' % Array[@baseurl, query_string]
-    # puts url
 
     # Test mode, return list of projects if slug is nil, or a single
     # project
@@ -440,7 +440,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.get url
-      res_dict = response_to_ruby(response)
+      res_dict = response_to_ruby(response.body, response.code)
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
@@ -477,7 +477,7 @@ class TimeSync # :nodoc:
 
     # Save for passing to test mode since format_endpoints deletes
     # kwargs['slug'] if it exists
-    if !query_parameters.empty? && query_parameters.key?('slug')
+    if !query_parameters.to_s.empty? && query_parameters.key?('slug')
       slug = query_parameters['slug']
     else
       slug = nil
@@ -487,7 +487,7 @@ class TimeSync # :nodoc:
 
     # If kwargs exist, create a correct query string
     # Else, prepare query_string for the token
-    if !query_parameters.empty?
+    if !query_parameters.to_s.empty?
       query_string = format_endpoints(query_parameters)
       # If format_endpoints returns nil, it was passed both slug and
       # include_deleted, which is not allowed by the TimeSync API
@@ -514,7 +514,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.get url
-      res_dict = response_to_ruby(response)
+      res_dict = response_to_ruby(response.body, response.code)
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
@@ -555,10 +555,11 @@ class TimeSync # :nodoc:
 
     # Attempt to GET users, then convert the response to a ruby
     # hash. Always returns a list.
+
     begin
       # Success!
       response = RestClient.get url
-      res_dict = response_to_ruby(response)
+      res_dict = response_to_ruby(response.body, response.code)
       return (res_dict.is_a?(Array) ? res_dict : [res_dict])
     rescue => e
       # Request Error
@@ -712,10 +713,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.get(url)
-      puts response
-      puts "======"
-      project_object = response_to_ruby(response)
-      puts project_object
+      project_object = response_to_ruby(response.body, response.code)
     rescue => e
       # Request Error
       return Hash[@error => e]
@@ -732,16 +730,20 @@ class TimeSync # :nodoc:
 
     # Convert the nested permissions dict to a list containing only
     # relevant (true) permissions
-    users.each do |user|
-      perm = Array[]
-      for permission in users[user]
-        if users[user][permission]
-          perm.push(permission)
+
+    rv = Hash.new
+
+    for user, permissions in users
+      rv_perms = Array[]
+      for perm, value in permissions
+        if value
+          rv_perms.push(perm)
         end
-        users[user] = perm
       end
+      rv[user] = rv_perms
     end
-    users
+
+    rv
   end
 
   ################################################
@@ -785,23 +787,24 @@ class TimeSync # :nodoc:
     end
   end
 
-  def response_to_ruby(response)
+  def response_to_ruby(body, code)
+    # Body should always be a string
+
     # Convert response to native ruby list of objects
     # DELETE returns an empty body if successful
-    if response.instance_variable_get(:@body).empty? && response.instance_variable_get(:@code) == 200
+    if body.empty? && code == 200
       return Hash['status' => 200]
     end
-
-    # If response.body is valid JSON, it came from TimeSync. If it isn't
+    # If body is valid JSON, it came from TimeSync. If it isn't
     # and we got a ValueError, we know we are having trouble connecting to
     # TimeSync because we are not getting a return from TimeSync.
     begin
-      ruby_object = response.instance_variable_get(:@body)
+      ruby_object = JSON.load(body)
     rescue => e
-      # If we get a ValueError, response.body isn't a JSON object, and
+      # If we get a ValueError, body isn't a JSON object, and
       # therefore didn't come from a TimeSync connection.
       err_msg = 'connection to TimeSync failed at baseurl %s - ' % @baseurl
-      err_msg += 'response status was %s' % response.instance_variable_get(:@code)
+      err_msg += 'response status was %s' % code
       return Hash[@error => err_msg]
     end
     return ruby_object
@@ -879,7 +882,7 @@ class TimeSync # :nodoc:
     else
       # Sort them into an alphabetized list for easier testing
       # sorted_qs = sorted(queries.to_a, key = operator.itemgetter(0))
-      sorted_qs = queriest.to_a.sort
+      sorted_qs = queries.to_a.sort
       for query, param in sorted_qs
         for slug in param
           # Format each query in the list
@@ -909,7 +912,7 @@ class TimeSync # :nodoc:
 
     # missing_list contains a list of all the required parameters that were
     # not passed. It is initialized to all required parameters.
-    missing_list = @required_params[object_name]
+    missing_list = @required_params[object_name].clone
 
     # For each key, if it is not required or optional, it is not allowed
     # If it is requried, remove that parameter from the missing_list, since
@@ -924,8 +927,7 @@ class TimeSync # :nodoc:
       # Remove field from copied list if the field is in required
       if @required_params[object_name].include? key.to_s
         # missing_list.delete(key.to_s)
-        missing_list.delete_at(missing_list.index(key))
-        puts missing_list
+        missing_list.delete_at(missing_list.index(key.to_s))
       end
     end
 
@@ -940,7 +942,7 @@ class TimeSync # :nodoc:
   end
 
   def create_or_update(object_fields, identifier,
-                       object_name, endpoint, create_object: true)
+                       object_name, endpoint, create_object = true)
     # Create or update an object ``object_name`` at specified ``endpoint``.
     # This method will return that object in the form of a list containing a
     # single ruby hash. The hash will contain a representation
@@ -955,7 +957,6 @@ class TimeSync # :nodoc:
       return Hash[@error => @local_auth_error]
     end
 
-    # puts object_fields
     # Check that object contains required fields and no bad fields
     field_error = get_field_errors(object_fields, object_name, create_object)
 
@@ -985,7 +986,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.post(url, values, :content_type => :json, :accept => :json)
-      return response_to_ruby(response)
+      return response_to_ruby(response.body, response.code)
     rescue => e
       # Request error
       return Hash[@error => e]
@@ -1032,7 +1033,7 @@ class TimeSync # :nodoc:
     begin
       # Success!
       response = RestClient.delete url
-      return response_to_ruby(response)
+      return response_to_ruby(response.body, response.code)
     rescue => e
       # Request error
       return Hash[@error => e]

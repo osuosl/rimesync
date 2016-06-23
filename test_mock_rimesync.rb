@@ -1,13 +1,12 @@
 require_relative 'rimesync'
 require 'test/unit'
-# require 'test/unit/ui/console/testrunner'
 
 # rubocop:disable ClassLength
 class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
   def setup
-    baseurl = 'http://ts.example.com/v1'
+    baseurl = 'http://ts.example.com/v0'
     @ts = TimeSync.new(baseurl, test = true) # rcop
-    @ts.authenticate('testuser', 'testpassword', 'password')
+    @ts.authenticate(username = 'testuser', password = 'testpassword', auth_type = 'password')
   end
 
   def test_mock_authenticate
@@ -272,7 +271,7 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
         'deleted_at' => nil
     ]
 
-    assertEquals(@ts.update_user(parameter_dict, 'example'),
+    assert_equal(@ts.update_user(parameter_dict, 'example'),
                  expected_result)
   end
 
@@ -576,22 +575,21 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
   def test_mock_project_users_no_slug
-    expected_result = Hash[ts.error => 'Missing project slug,
-                           please include in method call']
+    expected_result = Hash[@ts.instance_variable_get(:@error) => 'Missing project slug, please include in method call']
     assert_equal(@ts.project_users, expected_result)
   end
 
   def test_get_users_with_admin
     expected_result = Array[Hash[
-      'username': 'admin',
-      'display_name': 'X. Ample User',
-      'email': 'example@example.com',
-      'active': true,
-      'site_admin': true,
-      'site_manager': false,
-      'site_spectator': false,
-      'created_at': '2015-02-29',
-      'deleted_at': nil
+      'username' => 'admin',
+      'display_name' => 'X. Ample User',
+      'email' => 'example@example.com',
+      'active' => true,
+      'site_admin' => true,
+      'site_manager' => false,
+      'site_spectator' => false,
+      'created_at' => '2015-02-29',
+      'deleted_at' => nil
     ]]
 
     assert_equal(@ts.get_users('admin'), expected_result)
@@ -599,15 +597,15 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
 
   def test_get_users_with_manager
     expected_result = Array[Hash[
-      'username': 'manager',
-      'display_name': 'X. Ample User',
-      'email': 'example@example.com',
-      'active': true,
-      'site_admin': false,
-      'site_manager': true,
-      'site_spectator': false,
-      'created_at': '2015-02-29',
-      'deleted_at': nil
+      'username' => 'manager',
+      'display_name' => 'X. Ample User',
+      'email' => 'example@example.com',
+      'active' => true,
+      'site_admin' => false,
+      'site_manager' => true,
+      'site_spectator' => false,
+      'created_at' => '2015-02-29',
+      'deleted_at' => nil
     ]]
 
     assert_equal(@ts.get_users('manager'), expected_result)
@@ -615,15 +613,15 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
 
   def test_get_users_with_spectator
     expected_result = Array[Hash[
-      'username': 'spectator',
-      'display_name': 'X. Ample User',
-      'email': 'example@example.com',
-      'active': true,
-      'site_admin': false,
-      'site_manager': false,
-      'site_spectator': true,
-      'created_at': '2015-02-29',
-      'deleted_at': nil
+      'username' => 'spectator',
+      'display_name' => 'X. Ample User',
+      'email' => 'example@example.com',
+      'active' => true,
+      'site_admin' => false,
+      'site_manager' => false,
+      'site_spectator' => true,
+      'created_at' => '2015-02-29',
+      'deleted_at' => nil
     ]]
 
     assert_equal(@ts.get_users('spectator'), expected_result)

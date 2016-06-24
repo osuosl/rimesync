@@ -71,7 +71,7 @@ class TimeSync # :nodoc:
   end
 
   # rubocop:disable MethodLength
-  def authenticate(username = nil, password = nil, auth_type = nil)
+  def authenticate(username: nil, password: nil, auth_type: nil)
     # authenticate(username, password, auth_type)
 
     # Authenticate a username and password with TimeSync via a POST request
@@ -115,7 +115,6 @@ class TimeSync # :nodoc:
 
     # Construct the url with the login endpoint
     url = '%s/login' % Array[@baseurl]
-
 
     # Test mode, set token and return it from the mocked method
     if @test

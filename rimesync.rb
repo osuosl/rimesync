@@ -120,7 +120,9 @@ class TimeSync # :nodoc:
     # Test mode, set token and return it from the mocked method
     if @test
       @token = "TESTTOKEN"
-      return mock_rimesync.authenticate
+      m = MockTimeSync.new
+      return m.authenticate
+      # return mock_rimesync.authenticate
     end
 
     # Send the request, then convert the resonse to a ruby hash
@@ -353,10 +355,11 @@ class TimeSync # :nodoc:
 
     # Test mode, return one or many objects depending on if uuid is passed
     if @test
+      m = MockTimeSync.new
       if !query_parameters.nil? && query_parameters.key?('uuid')
-        return mock_rimesync.get_times(query_parameters['uuid'])
+        return m.get_times(query_parameters['uuid'])
       else
-        return mock_rimesync.get_times(nil)
+        return m.get_times(nil)
       end
     end
 
@@ -432,7 +435,8 @@ class TimeSync # :nodoc:
     # Test mode, return list of projects if slug is nil, or a single
     # project
     if @test
-      return mock_rimesync.get_projects(slug)
+      m = MockTimeSync.new
+      return m.get_projects(slug)
     end
 
     # Attempt to GET projects, then convert the response to a ruby
@@ -506,7 +510,8 @@ class TimeSync # :nodoc:
     # Test mode, return list of projects if slug is nil, or a list of
     # projects
     if @test
-      return mock_rimesync.get_activities(slug)
+      m = MockTimeSync.new
+      return m.get_activities(slug)
     end
 
     # Attempt to GET activities, then convert the response to a ruby
@@ -550,7 +555,8 @@ class TimeSync # :nodoc:
     # Test mode, return one user object if username is passed else return
     # several user objects
     if @test
-      return mock_rimesync.get_users(username)
+      m = MockTimeSync.new
+      return m.get_users(username)
     end
 
     # Attempt to GET users, then convert the response to a ruby
@@ -662,7 +668,8 @@ class TimeSync # :nodoc:
 
     # Return valid date if in test mode
     if @test
-      return mock_rimesync.token_expiration_time
+      m = MockTimeSync.new
+      return m.token_expiration_time
     end
 
     # Decode the token, then get the second dict (payload) from the
@@ -707,7 +714,8 @@ class TimeSync # :nodoc:
     url = '%s/projects/%s?token=%s' % Array[@baseurl, project, @token]
     # Return valid user object if in test mode
     if @test
-      return mock_rimesync.project_users
+      m = MockTimeSync.new
+      return m.project_users
     end
     # Try to get the project object
     begin
@@ -977,8 +985,10 @@ class TimeSync # :nodoc:
     url = '%s/%s%s' % Array[@baseurl, endpoint, identifier]
 
     # Test mode, remove leading '/' from identifier
+    identifier.slice!(0)
+    test_identifier = identifier
     if @test
-      return test_handler(object_fields, identifier.drop(1), object_name, create_object)
+      return test_handler(object_fields, test_identifier, object_name, create_object)
     end
 
     # Attempt to POST to TimeSync, then convert the response to a ruby
@@ -1026,7 +1036,8 @@ class TimeSync # :nodoc:
 
     # Test mode
     if @test
-      return mock_rimesync.delete_object
+      m = MockTimeSync.new
+      return m.delete_object
     end
 
     # Attempt to DELETE object
@@ -1042,31 +1053,40 @@ class TimeSync # :nodoc:
 
   # Handle test methods in test mode for creating or updating an object
   def test_handler(parameters, identifier, obj_name, create_object)
+    m = MockTimeSync.new
     case obj_name
 
     when 'time'
       if create_object
-        return mock_rimesync.create_time(parameters)
+        # return mock_rimesync.create_time(parameters)
+        return m.create_time(parameters)
       else
-        return mock_rimesync.update_time(parameters, identifier)
+        # return mock_rimesync.update_time(parameters, identifier)
+        return m.update_time(parameters, identifier)
       end
     when 'project'
       if create_object
-        return mock_rimesync.create_project(parameters)
+        # return mock_rimesync.create_project(parameters)
+        return m.create_project(parameters)
       else
-        return mock_rimesync.update_project(parameters, identifier)
+        # return mock_rimesync.update_project(parameters, identifier)
+        return m.update_project(parameters, identifier)
       end
     when 'activity'
       if create_object
-        return mock_rimesync.create_activity(parameters)
+        # return mock_rimesync.create_activity(parameters)
+        return m.create_activity(parameters)
       else
-        return mock_rimesync.update_activity(parameters, identifier)
+        # return mock_rimesync.update_activity(parameters, identifier)
+        return m.update_activity(parameters, identifier)
       end
     when 'user'
       if create_object
-        return mock_rimesync.create_user(parameters)
+        # return mock_rimesync.create_user(parameters)
+        return m.create_user(parameters)
       else
-        return mock_rimesync.update_user(parameters, identifier)
+        # return mock_rimesync.update_user(parameters, identifier)
+        return m.update_user(parameters, identifier)
       end
     end
   end

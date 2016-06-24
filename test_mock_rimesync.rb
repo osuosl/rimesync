@@ -1,18 +1,18 @@
-require_relative 'rimesync'
 require 'test/unit'
+require_relative 'rimesync'
 
 # rubocop:disable ClassLength
 class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
   def setup
     baseurl = 'http://ts.example.com/v0'
-    @ts = TimeSync.new(baseurl, test = true) # rcop
-    @ts.authenticate(username = 'testuser', password = 'testpassword', auth_type = 'password')
+    @ts = TimeSync.new(baseurl, token=nil, test = true)
+    @ts.authenticate('testuser', 'testpassword', 'password')
   end
 
   def test_mock_authenticate
     @ts.instance_variable_set(:@token, nil)
     assert_equal(@ts.authenticate('example', 'ex', 'password'), Hash['token' => 'TESTTOKEN'])
-    assert_equal(@ts.intance_variable_get(:@token), 'TESTTOKEN')
+    assert_equal(@ts.instance_variable_get(:@token), 'TESTTOKEN')
   end
 
   def test_mock_token_expiration_time

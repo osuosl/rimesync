@@ -5,7 +5,6 @@ require 'bcrypt'
 require 'base64'
 require 'rest-client'
 require 'webmock/test_unit'
-require 'mocha/test_unit'
 
 # rubocop:disable ClassLength
 class TestRimeSync < Test::Unit::TestCase # :nodoc:
@@ -27,7 +26,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   # Test that instantiating rimesync without a token
   # does not sets the token variable
   def test_instantiate_without_token
-    @ts = TimeSync.new('baseurl') # not sure about "@"ts
+    @ts = TimeSync.new('baseurl')
     assert_nil(@ts.instance_variable_get(:@token))
   end
 

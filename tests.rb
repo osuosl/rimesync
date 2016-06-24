@@ -1491,7 +1491,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
     @ts.hash_user_password(user)
 
-    assert_equal(BCrypt::Password.create(user[:password]), user[:password])
+    assert_equal(BCrypt::Password.create(user['password']), user['password'])
   end
 
 

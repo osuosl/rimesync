@@ -784,13 +784,13 @@ class TimeSync # :nodoc:
     # Only hash password if it is present
     # Don't error out here so that internal methods can catch all missing
     # fields later on and return a more meaningful error if necessary.
-    if user.key?(:password)
-      password = user[:password]
+    if user.key?('password')
+      password = user['password']
 
       # Hash the password
-      hashed = BCrypt::Password.create(:password)
+      hashed = BCrypt::Password.create('password')
 
-      user[:password] = hashed
+      user['password'] = hashed
     end
   end
 

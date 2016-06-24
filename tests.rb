@@ -1485,8 +1485,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def test_hash_user_password
     # Tests that passwords are hashed correctly
     user = Hash[
-        'username': 'user',
-        'password': 'pass'
+        'username' => 'user',
+        'password' => 'pass'
     ]
 
     @ts.hash_user_password(user)
@@ -1521,7 +1521,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
     stub_request(:post, /.*/)
     .to_return(:body => JSON.dump(Hash['token' => 'sometoken']))
 
-    auth_block = @ts.authenticate(username = 'example-user', password = 'password', auth_type = 'password')
+    auth_block = @ts.authenticate(username: 'example-user', password: 'password', auth_type: 'password')
 
     assert_equal(auth_block['token'], @ts.instance_variable_get(:@token), 'sometoken')
     assert_equal(auth_block, Hash['token' => 'sometoken'])
@@ -1534,7 +1534,7 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
                                    'error' => 'Authentication failure',
                                    'text' => 'Invalid username or password']))
 
-    auth_block = @ts.authenticate(username = 'example-user', password = 'password', auth_type = 'password')
+    auth_block = @ts.authenticate(username: 'example-user', password: 'password', auth_type: 'password')
 
     assert_equal(auth_block,
                  Hash['status' => 401,
@@ -1544,42 +1544,42 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
 
   # Tests authenticate method with no username in call
   def test_authentication_no_username
-    assert_equal(@ts.authenticate(password = 'password', auth_type = 'password'),
+    assert_equal(@ts.authenticate(password: 'password', auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username; please add to method call'])
   end
 
   # Tests authenticate method with no password in call
   def test_authentication_no_password
-    assert_equal(@ts.authenticate(username = 'username', auth_type = 'password'),
+    assert_equal(@ts.authenticate(username: 'username', auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password; please add to method call'])
   end
 
   # Tests authenticate method with no auth_type in call
   def test_authentication_no_auth_type
-    assert_equal(@ts.authenticate(username = 'username', password = 'password'),
+    assert_equal(@ts.authenticate(username: 'username', password: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or password in call
   def test_authentication_no_username_or_password
-    assert_equal(@ts.authenticate(auth_type = 'password'),
+    assert_equal(@ts.authenticate(auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, password; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_username_or_auth_type
-    assert_equal(@ts.authenticate(password = 'password'),
+    assert_equal(@ts.authenticate(password: 'password'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing username, auth_type; please add to method call'])
   end
 
   # Tests authenticate method with no username or auth_type in call
   def test_authentication_no_password_or_auth_type
-    assert_equal(@ts.authenticate(username = 'username'),
+    assert_equal(@ts.authenticate(username: 'username'),
                  Hash[@ts.instance_variable_get(:@error) =>
                   'Missing password, auth_type; please add to method call'])
   end
@@ -1595,8 +1595,8 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   def test_authentication_no_token_in_response
     stub_request(:post, /.*/).to_return(:status => 502)
 
-    assert_equal(@ts.authenticate(username = 'username', password = 'password',
-                                 auth_type = 'password'),
+    assert_equal(@ts.authenticate(username: 'username', password: 'password',
+                                 auth_type: 'password'),
                  Hash[@ts.instance_variable_get(:@error) => 'connection to TimeSync failed at baseurl http://ts.example.com/v0 - response status was 502'])
   end
 

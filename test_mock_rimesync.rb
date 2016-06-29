@@ -6,12 +6,12 @@ class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
   def setup
     baseurl = 'http://ts.example.com/v0'
     @ts = TimeSync.new(baseurl, token=nil, test = true)
-    @ts.authenticate('testuser', 'testpassword', 'password')
+    @ts.authenticate(username: 'testuser', password: 'testpassword', auth_type: 'password')
   end
 
   def test_mock_authenticate
     @ts.instance_variable_set(:@token, nil)
-    assert_equal(@ts.authenticate('example', 'ex', 'password'), Hash['token' => 'TESTTOKEN'])
+    assert_equal(@ts.authenticate(username: 'example', password: 'ex', auth_type: 'password'), Hash['token' => 'TESTTOKEN'])
     assert_equal(@ts.instance_variable_get(:@token), 'TESTTOKEN')
   end
 

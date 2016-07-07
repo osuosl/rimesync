@@ -1,5 +1,5 @@
 require 'test/unit'
-require_relative 'rimesync'
+require_relative '../lib/rimesync'
 
 # rubocop:disable ClassLength
 class TestMockRimeSync < Test::Unit::TestCase # :nodoc:

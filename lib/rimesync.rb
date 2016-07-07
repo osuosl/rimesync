@@ -21,7 +21,7 @@
 # v0
 
 require 'json'
-require_relative 'mock_rimesync'
+require_relative 'rimesync/mock_rimesync'
 require 'bcrypt'
 require 'base64'
 require 'rest-client'

@@ -1,5 +1,5 @@
 require 'test/unit'
-require_relative 'rimesync'
+require_relative '../lib/rimesync'
 require 'json'
 require 'bcrypt'
 require 'base64'

@@ -36,9 +36,7 @@ class FalseClass;
   include Boolean;
 end
 
-# rubocop:disable ClassLength
-class TimeSync # :nodoc:
-  # rubocop:disable MethodLength
+class TimeSync
   def initialize(baseurl, token = nil, test = false)
     if baseurl.end_with? "/"
       @baseurl = baseurl.chop
@@ -70,21 +68,18 @@ class TimeSync # :nodoc:
     ]
   end
 
+  # authenticate(username, password, auth_type)
+  # Authenticate a username and password with TimeSync via a POST request
+  # to the login endpoint. This method will return a list containing a
+  # single ruby hash. If successful, the hash will contain
+  # the token in the form [{'token': 'SOMETOKEN'}]. If an error is returned
+  # the hash will contain the error information.
+  # ``username`` is a string containing the username of the TimeSync user
+  # ``password`` is a string containing the user's password
+  # ``auth_type`` is a string containing the authentication method used by
+  # TimeSync
   # rubocop:disable MethodLength
   def authenticate(username: nil, password: nil, auth_type: nil)
-    # authenticate(username, password, auth_type)
-
-    # Authenticate a username and password with TimeSync via a POST request
-    # to the login endpoint. This method will return a list containing a
-    # single ruby hash. If successful, the hash will contain
-    # the token in the form [{'token': 'SOMETOKEN'}]. If an error is returned
-    # the hash will contain the error information.
-
-    # ``username`` is a string containing the username of the TimeSync user
-    # ``password`` is a string containing the user's password
-    # ``auth_type`` is a string containing the authentication method used by
-    # TimeSync
-
     # Check for correct arguments in method call
     arg_error_list = Array[]
 
@@ -145,16 +140,14 @@ class TimeSync # :nodoc:
     end
   end
 
+  # create_time(time)
+  # Send a time entry to TimeSync via a POST request in a JSON body. This
+  # method will return that body in the form of a list containing a single
+  # ruby hash. The hash will contain a representation of that
+  # JSON body if it was successful or error information if it was not.
+  # ``time`` is a ruby hash containing the time information to send
+  # to TimeSync.
   def create_time(time)
-    # create_time
-
-    # Send a time entry to TimeSync via a POST request in a JSON body. This
-    # method will return that body in the form of a list containing a single
-    # ruby hash. The hash will contain a representation of that
-    # JSON body if it was successful or error information if it was not.
-
-    # ``time`` is a ruby hash containing the time information to send
-    # to TimeSync.
 
     unless time['duration'].is_a? Integer
       duration = duration_to_seconds(time['duration'])
@@ -173,18 +166,16 @@ class TimeSync # :nodoc:
     return create_or_update(time, nil, 'time', 'times')
   end
 
+  # update_time(time, uuid)
+  # Send a time entry update to TimeSync via a POST request in a JSON body.
+  # This method will return that body in the form of a list containing a
+  # single ruby hash. The hash will contain a representation
+  # of that updated time object if it was successful or error information
+  # if it was not.
+  # ``time`` is a ruby hash containing the time information to send
+  # to TimeSync.
+  # ``uuid`` contains the uuid for a time entry to update.
   def update_time(time, uuid)
-    # update_time(time, uuid)
-
-    # Send a time entry update to TimeSync via a POST request in a JSON body.
-    # This method will return that body in the form of a list containing a
-    # single ruby hash. The hash will contain a representation
-    # of that updated time object if it was successful or error information
-    # if it was not.
-
-    # ``time`` is a ruby hash containing the time information to send
-    # to TimeSync.
-    # ``uuid`` contains the uuid for a time entry to update.
     if time.key?('duration')
       unless time['duration'].is_a? Integer
         duration = duration_to_seconds(time['duration'])
@@ -204,76 +195,66 @@ class TimeSync # :nodoc:
     return create_or_update(time, uuid, 'time', 'times', false)
   end
 
+  # create_project(project)
+  # Post a project to TimeSync via a POST request in a JSON body. This
+  # method will return that body in the form of a list containing a single
+  # ruby hash. The hash will contain a representation of that
+  # JSON body if it was successful or error information if it was not.
+  # ``project`` is a ruby hash containing the project information
+  # to send to TimeSync.
   def create_project(project)
-    # create_project(project)
-
-    # Post a project to TimeSync via a POST request in a JSON body. This
-    # method will return that body in the form of a list containing a single
-    # ruby hash. The hash will contain a representation of that
-    # JSON body if it was successful or error information if it was not.
-
-    # ``project`` is a ruby hash containing the project information
-    # to send to TimeSync.
     return create_or_update(project, nil, 'project', 'projects')
   end
 
+  # update_project(project, slug)
+  # Send a project update to TimeSync via a POST request in a JSON body.
+  # This method will return that body in the form of a list containing a
+  # single ruby hash. The hash will contain a representation
+  # of that updated project object if it was successful or error
+  # information if it was not.
+  # ``project`` is a ruby hash containing the project information
+  # to send to TimeSync.
+  # ``slug`` contains the slug for a project entry to update.
   def update_project(project, slug)
-    # update_project(project, slug)
-
-    # Send a project update to TimeSync via a POST request in a JSON body.
-    # This method will return that body in the form of a list containing a
-    # single ruby hash. The hash will contain a representation
-    # of that updated project object if it was successful or error
-    # information if it was not.
-
-    # ``project`` is a ruby hash containing the project information
-    # to send to TimeSync.
-    # ``slug`` contains the slug for a project entry to update.
     return create_or_update(project, slug, 'project', 'projects',
                             false)
   end
 
+  # create_activity(activity, slug=nil)
+  # Post an activity to TimeSync via a POST request in a JSON body. This
+  # method will return that body in the form of a list containing a single
+  # ruby hash. The hash will contain a representation of that
+  # JSON body if it was successful or error information if it was not.
+  # ``activity`` is a ruby hash containing the activity information
+  # to send to TimeSync.
   def create_activity(activity)
-    # create_activity(activity, slug=nil)
-
-    # Post an activity to TimeSync via a POST request in a JSON body. This
-    # method will return that body in the form of a list containing a single
-    # ruby hash. The hash will contain a representation of that
-    # JSON body if it was successful or error information if it was not.
-
-    # ``activity`` is a ruby hash containing the activity information
-    # to send to TimeSync.
     return create_or_update(activity, nil,
                             'activity', 'activities')
   end
 
+  # update_activity(activity, slug)
+  # Send an activity update to TimeSync via a POST request in a JSON body.
+  # This method will return that body in the form of a list containing a
+  # single ruby hash. The hash will contain a representation
+  # of that updated activity object if it was successful or error
+  # information if it was not.
+  # ``activity`` is a ruby hash containing the project information
+  # to send to TimeSync.
+  # ``slug`` contains the slug for an activity entry to update.
   def update_activity(activity, slug)
-    # update_activity(activity, slug)
-
-    # Send an activity update to TimeSync via a POST request in a JSON body.
-    # This method will return that body in the form of a list containing a
-    # single ruby hash. The hash will contain a representation
-    # of that updated activity object if it was successful or error
-    # information if it was not.
-
-    # ``activity`` is a ruby hash containing the project information
-    # to send to TimeSync.
-    # ``slug`` contains the slug for an activity entry to update.
     return create_or_update(activity, slug,
                             'activity', 'activities',
                             false)
   end
 
+  # create_user(user)
+  # Post a user to TimeSync via a POST request in a JSON body. This
+  # method will return that body in the form of a list containing a single
+  # ruby hash. The hash will contain a representation of that
+  # JSON body if it was successful or error information if it was not.
+  # ``user`` is a ruby hash containing the user information to send
+  # to TimeSync.
   def create_user(user)
-    # create_user(user)
-
-    # Post a user to TimeSync via a POST request in a JSON body. This
-    # method will return that body in the form of a list containing a single
-    # ruby hash. The hash will contain a representation of that
-    # JSON body if it was successful or error information if it was not.
-
-    # ``user`` is a ruby hash containing the user information to send
-    # to TimeSync.
     ary = %w(site_admin site_manager site_spectator active)
     ary.each do |perm|
       if user.key?(perm) && !(user[perm].is_a? Boolean)
@@ -285,19 +266,16 @@ class TimeSync # :nodoc:
     return create_or_update(user, nil, 'user', 'users')
   end
 
+  # update_user(user, username)
+  # Send a user update to TimeSync via a POST request in a JSON body.
+  # This method will return that body in the form of a list containing a
+  # single ruby hash. The hash will contain a representation
+  # of that updated user object if it was successful or error
+  # information if it was not.
+  # ``user`` is a ruby hash containing the user information to send
+  # to TimeSync.
+  # ``username`` contains the username for a user to update.
   def update_user(user, username)
-    # update_user(user, username)
-
-    # Send a user update to TimeSync via a POST request in a JSON body.
-    # This method will return that body in the form of a list containing a
-    # single ruby hash. The hash will contain a representation
-    # of that updated user object if it was successful or error
-    # information if it was not.
-
-    # ``user`` is a ruby hash containing the user information to send
-    # to TimeSync.
-    # ``username`` contains the username for a user to update.
-
     ary = %w(site_admin site_manager site_spectator active)
     ary.each do |perm|
       if user.key?(perm) && !(user[perm].is_a? Boolean)
@@ -309,21 +287,18 @@ class TimeSync # :nodoc:
     return create_or_update(user, username, 'user', 'users', false)
   end
 
+  # get_times(query_parameters)
+  # Request time entries filtered by parameters passed in
+  # ``query_parameters``. Returns a list of ruby objects representing the
+  # JSON time information returned by TimeSync or an error message if
+  # unsuccessful.
+  # ``query_parameters`` is a ruby hash containing the optional
+  # query parameters described in the TimeSync documentation. If
+  # ``query_parameters`` is empty or nil, ``get_times`` will return all
+  # times in the database. The syntax for each argument is
+  # ``{'query': ['parameter']}``.
   def get_times(query_parameters = nil)
-    # get_times(query_parameters)
-
-    # Request time entries filtered by parameters passed in
-    # ``query_parameters``. Returns a list of ruby objects representing the
-    # JSON time information returned by TimeSync or an error message if
-    # unsuccessful.
-
-    # ``query_parameters`` is a ruby hash containing the optional
-    # query parameters described in the TimeSync documentation. If
-    # ``query_parameters`` is empty or nil, ``get_times`` will return all
-    # times in the database. The syntax for each argument is
-    # ``{'query': ['parameter']}``.
     # Check that user has authenticated
-
     @local_auth_error = local_auth_error
     if @local_auth_error
       return [Hash[@error => @local_auth_error]]
@@ -375,29 +350,24 @@ class TimeSync # :nodoc:
     end
   end
 
+  # get_projects(query_parameters)
+  # Request project information filtered by parameters passed to
+  # ``query_parameters``. Returns a list of ruby objects representing the
+  # JSON project information returned by TimeSync or an error message if
+  # unsuccessful.
+  # ``query_parameters`` is a ruby dict containing the optional query
+  # parameters described in the TimeSync documentation. If
+  # ``query_parameters`` is empty or nil, ``get_projects`` will return
+  # all projects in the database. The syntax for each argument is
+  # ``{'query': 'parameter'}`` or ``{'bool_query': <boolean>}``.
+  # Optional parameters:
+  # 'slug': '<slug>'
+  # 'include_deleted': <boolean>
+  # 'revisions': <boolean>
+  # Does not accept a slug combined with include_deleted, but does accept
+  # any other combination.
   def get_projects(query_parameters = nil)
-    # get_projects(query_parameters)
-
-    # Request project information filtered by parameters passed to
-    # ``query_parameters``. Returns a list of ruby objects representing the
-    # JSON project information returned by TimeSync or an error message if
-    # unsuccessful.
-
-    # ``query_parameters`` is a ruby dict containing the optional query
-    # parameters described in the TimeSync documentation. If
-    # ``query_parameters`` is empty or nil, ``get_projects`` will return
-    # all projects in the database. The syntax for each argument is
-    # ``{'query': 'parameter'}`` or ``{'bool_query': <boolean>}``.
-
-    # Optional parameters:
-    # 'slug': '<slug>'
-    # 'include_deleted': <boolean>
-    # 'revisions': <boolean>
-
-    # Does not accept a slug combined with include_deleted, but does accept
-    # any other combination.
     # Check that user has authenticated
-
     @local_auth_error = local_auth_error
     if @local_auth_error
       return [Hash[@error => @local_auth_error]]
@@ -451,27 +421,23 @@ class TimeSync # :nodoc:
     end
   end
 
+  # get_activities(query_parameters)
+  # Request activity information filtered by parameters passed to
+  # ``query_parameters``. Returns a list of ruby objects representing
+  # the JSON activity information returned by TimeSync or an error message
+  # if unsuccessful.
+  # ``query_parameters`` is a hash containing the optional query
+  # parameters described in the TimeSync documentation. If
+  # ``query_parameters`` is empty or nil, ``get_activities`` will
+  # return all activities in the database. The syntax for each argument is
+  # ``{'query': 'parameter'}`` or ``{'bool_query': <boolean>}``.
+  # Optional parameters:
+  # 'slug': '<slug>'
+  # 'include_deleted': <boolean>
+  # 'revisions': <boolean>
+  # Does not accept a slug combined with include_deleted, but does accept
+  # any other combination.
   def get_activities(query_parameters = nil)
-    # get_activities(query_parameters)
-
-    # Request activity information filtered by parameters passed to
-    # ``query_parameters``. Returns a list of ruby objects representing
-    # the JSON activity information returned by TimeSync or an error message
-    # if unsuccessful.
-
-    # ``query_parameters`` is a hash containing the optional query
-    # parameters described in the TimeSync documentation. If
-    # ``query_parameters`` is empty or nil, ``get_activities`` will
-    # return all activities in the database. The syntax for each argument is
-    # ``{'query': 'parameter'}`` or ``{'bool_query': <boolean>}``.
-
-    # Optional parameters:
-    # 'slug': '<slug>'
-    # 'include_deleted': <boolean>
-    # 'revisions': <boolean>
-
-    # Does not accept a slug combined with include_deleted, but does accept
-    # any other combination.
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
@@ -526,19 +492,18 @@ class TimeSync # :nodoc:
     end
   end
 
+  # get_users(username=nil)
+
+  # Request user entities from the TimeSync instance specified by the
+  # baseurl provided when instantiating the TimeSync object. Returns a list
+  # of ruby dictionaries containing the user information returned by
+  # TimeSync or an error message if unsuccessful.
+
+  # ``username`` is an optional parameter containing a string of the
+  # specific username to be retrieved. If ``username`` is not provided, a
+  # list containing all users will be returned. Defaults to ``nil``.
   def get_users(username = nil)
-    # get_users(username=nil)
-
-    # Request user entities from the TimeSync instance specified by the
-    # baseurl provided when instantiating the TimeSync object. Returns a list
-    # of ruby dictionaries containing the user information returned by
-    # TimeSync or an error message if unsuccessful.
-
-    # ``username`` is an optional parameter containing a string of the
-    # specific username to be retrieved. If ``username`` is not provided, a
-    # list containing all users will be returned. Defaults to ``nil``.
     # Check that user has authenticated
-
     @local_auth_error = local_auth_error
     if @local_auth_error
       return [Hash[@error => @local_auth_error]]
@@ -572,14 +537,12 @@ class TimeSync # :nodoc:
     end
   end
 
+  # delete_time(uuid=nil)
+  # Allows the currently authenticated user to delete their own time entry
+  # by uuid.
+  # ``uuid`` is a string containing the uuid of the time entry to be
+  # deleted.
   def delete_time(uuid = nil)
-    # delete_time(uuid=nil)
-
-    # Allows the currently authenticated user to delete their own time entry
-    # by uuid.
-
-    # ``uuid`` is a string containing the uuid of the time entry to be
-    # deleted.
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
@@ -593,13 +556,11 @@ class TimeSync # :nodoc:
     return delete_object('times', uuid)
   end
 
+  # delete_project(slug=nil)
+  # Allows the currently authenticated admin user to delete a project
+  # record by slug.
+  # ``slug`` is a string containing the slug of the project to be deleted.
   def delete_project(slug = nil)
-    # delete_project(slug=nil)
-
-    # Allows the currently authenticated admin user to delete a project
-    # record by slug.
-
-    # ``slug`` is a string containing the slug of the project to be deleted.
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
@@ -613,13 +574,11 @@ class TimeSync # :nodoc:
     return delete_object('projects', slug)
   end
 
+  # delete_activity(slug=nil)
+  # Allows the currently authenticated admin user to delete an activity
+  # record by slug.
+  # ``slug`` is a string containing the slug of the activity to be deleted.
   def delete_activity(slug = nil)
-    # delete_activity(slug=nil)
-
-    # Allows the currently authenticated admin user to delete an activity
-    # record by slug.
-
-    # ``slug`` is a string containing the slug of the activity to be deleted.
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
@@ -633,14 +592,12 @@ class TimeSync # :nodoc:
     return delete_object('activities', slug)
   end
 
+  # delete_user(username=nil)
+  # Allows the currently authenticated admin user to delete a user
+  # record by username.
+  # ``username`` is a string containing the username of the user to be
+  # deleted.
   def delete_user(username = nil)
-    # delete_user(username=nil)
-
-    # Allows the currently authenticated admin user to delete a user
-    # record by username.
-
-    # ``username`` is a string containing the username of the user to be
-    # deleted.
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
@@ -655,10 +612,10 @@ class TimeSync # :nodoc:
     return delete_object('users', username)
   end
 
+  # token_expiration_time
+  # Returns the expiration time of the JWT (JSON Web Token) associated with
+  # this object.
   def token_expiration_time
-    # token_expiration_time
-    # Returns the expiration time of the JWT (JSON Web Token) associated with
-    # this object.
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
@@ -693,11 +650,10 @@ class TimeSync # :nodoc:
     return exp_datetime
   end
 
+  # project_users(project)
+  # Returns a dict of users for the specified project containing usernames
+  # mapped to their list of permissions for the project.
   def project_users(project = nil)
-    # project_users(project)
-
-    # Returns a dict of users for the specified project containing usernames
-    # mapped to their list of permissions for the project.
     # Check that user has authenticated
     @local_auth_error = local_auth_error
     if @local_auth_error
@@ -757,24 +713,22 @@ class TimeSync # :nodoc:
   # Internal methods
   ################################################
 
-  # private
-
+  # Returns auth object to log in to TimeSync
   def auth
-    # Returns auth object to log in to TimeSync
     Hash['type' => @auth_type,
          'username' => @user,
          'password' => @password]
   end
 
+  # Returns auth object with a token to send to TimeSync endpoints
   def token_auth
-    # Returns auth object with a token to send to TimeSync endpoints
     Hash['type' => 'token',
          'token' => @token,]
   end
 
+  # Checks that token is set.
+  # Returns error if not set, otherwise returns nil
   def local_auth_error
-    # Checks that token is set.
-    # Returns error if not set, otherwise returns nil
     return (@token ? nil : ('Not authenticated with TimeSync, call authenticate first'))
   end
 
@@ -794,10 +748,9 @@ class TimeSync # :nodoc:
     end
   end
 
+  # Convert response to native ruby list of objects
   def response_to_ruby(body, code)
     # Body should always be a string
-
-    # Convert response to native ruby list of objects
     # DELETE returns an empty body if successful
     if body.empty? && code == 200
       return Hash['status' => 200]
@@ -853,8 +806,8 @@ class TimeSync # :nodoc:
     query_string
   end
 
+  # Construct the query string for filtering GET queries, such as get_times
   def construct_filter_query(queries)
-    # Construct the query string for filtering GET queries, such as get_times
     query_string = '?'
     query_list = Array[]
 
@@ -907,11 +860,11 @@ class TimeSync # :nodoc:
     query_string
   end
 
+  # Checks that ``actual`` parameter passed to POST method contains
+  # items in required or optional lists for that ``object_name``.
+  # Returns nil if no errors found or error string if error found. If
+  # ``create_object`` then ``actual`` gets checked for required fields
   def get_field_errors(actual, object_name, create_object)
-    # Checks that ``actual`` parameter passed to POST method contains
-    # items in required or optional lists for that ``object_name``.
-    # Returns nil if no errors found or error string if error found. If
-    # ``create_object`` then ``actual`` gets checked for required fields
     # Check that actual is a ruby dict
     unless actual.is_a? (Hash)
       return '%s object: must be ruby hash' % object_name
@@ -948,15 +901,14 @@ class TimeSync # :nodoc:
     nil
   end
 
+  # Create or update an object ``object_name`` at specified ``endpoint``.
+  # This method will return that object in the form of a list containing a
+  # single ruby hash. The hash will contain a representation
+  # of the JSON body returned by TimeSync if it was successful or error
+  # information if it was not. If ``create_object``, then ``parameters``
+  # gets checked for required fields.
   def create_or_update(object_fields, identifier,
                        object_name, endpoint, create_object = true)
-    # Create or update an object ``object_name`` at specified ``endpoint``.
-    # This method will return that object in the form of a list containing a
-    # single ruby hash. The hash will contain a representation
-    # of the JSON body returned by TimeSync if it was successful or error
-    # information if it was not. If ``create_object``, then ``parameters``
-    # gets checked for required fields.
-
     # Check that user has authenticated
     @local_auth_error = local_auth_error
 
@@ -1002,12 +954,11 @@ class TimeSync # :nodoc:
     end
   end
 
+  # When a time_entry is created, a user will enter a time duration as
+  # one of the parameters of the object. This method will convert that
+  # entry (if it's entered as a string) into the appropriate integer
+  # equivalent (in seconds).
   def duration_to_seconds(duration)
-    # When a time_entry is created, a user will enter a time duration as
-    # one of the parameters of the object. This method will convert that
-    # entry (if it's entered as a string) into the appropriate integer
-    # equivalent (in seconds).
-
     begin
       t = Time.strptime(duration, '%Hh%Mm')
       hours_spent = t.hour

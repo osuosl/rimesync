@@ -19,9 +19,9 @@ class MockTimeSync
     p_dict
   end
 
-  # Updates time by uuid
   # rubocop:disable MethodLength
   # rubocop:disable Metrics/AbcSize
+  # Updates time by uuid
   def update_time(p_dict, uuid)
     updated_param = Hash[
       'duration' => p_dict.key?('duration') ? p_dict['duration'] : 18,

@@ -7,7 +7,7 @@ require 'rest-client'
 require 'webmock/test_unit'
 
 # rubocop:disable ClassLength
-class TestRimeSync < Test::Unit::TestCase # :nodoc:
+class TestRimeSync < Test::Unit::TestCase
   def setup
     baseurl = 'http://ts.example.com/v0'
     @ts = TimeSync.new(baseurl)
@@ -643,20 +643,20 @@ class TestRimeSync < Test::Unit::TestCase # :nodoc:
   end
 
 
-  def test_create_or_update_create_project_no_auth
   # Tests TimeSync.create_or_update for create project with no auth
-  # Parameters to be sent to TimeSync
-  project = Hash[
-      'uri' => 'https://code.osuosl.org/projects/timesync',
-      'name' => 'TimeSync API',
-      'slugs' => %w(timesync time),
-  ]
+  def test_create_or_update_create_project_no_auth
+    # Parameters to be sent to TimeSync
+    project = Hash[
+        'uri' => 'https://code.osuosl.org/projects/timesync',
+        'name' => 'TimeSync API',
+        'slugs' => %w(timesync time),
+    ]
 
-  @ts.instance_variable_set(:@token, nil)
+    @ts.instance_variable_set(:@token, nil)
 
-  # Send it
-  assert_equal(@ts.create_or_update(project, nil, 'project', 'projects'),
-    Hash[@ts.instance_variable_get(:@error), 'Not authenticated with TimeSync, call authenticate first'])
+    # Send it
+    assert_equal(@ts.create_or_update(project, nil, 'project', 'projects'),
+      Hash[@ts.instance_variable_get(:@error), 'Not authenticated with TimeSync, call authenticate first'])
   end
 
 

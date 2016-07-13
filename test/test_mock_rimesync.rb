@@ -2,7 +2,7 @@ require 'test/unit'
 require_relative '../lib/rimesync'
 
 # rubocop:disable ClassLength
-class TestMockRimeSync < Test::Unit::TestCase # :nodoc:
+class TestMockRimeSync < Test::Unit::TestCase
   def setup
     baseurl = 'http://ts.example.com/v0'
     @ts = TimeSync.new(baseurl, token=nil, test = true)

@@ -125,8 +125,9 @@ class TimeSync
       response = RestClient.post(url, auth_hash, :content_type => :json, :accept => :json)
       token_response = response_to_ruby(response.body, response.code)
     rescue => e
-      # Request error
-      return Hash[@error => e]
+      err_msg = 'connection to TimeSync failed at baseurl %s - ' % @baseurl
+      err_msg += 'response status was %s' % e.http_code
+      return Hash[@error => err_msg]
     end
 
     # If TimeSync returns an error, return the error without setting the
@@ -148,7 +149,6 @@ class TimeSync
   # ``time`` is a ruby hash containing the time information to send
   # to TimeSync.
   def create_time(time)
-
     unless time['duration'].is_a? Integer
       duration = duration_to_seconds(time['duration'])
       time['duration'] = duration

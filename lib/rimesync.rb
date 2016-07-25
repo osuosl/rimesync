@@ -122,8 +122,9 @@ class TimeSync
                                                  accept: :json)
       token_response = response_to_ruby(response.body, response.code)
     rescue => e
-      # Request error
-      return Hash[@error => e]
+      err_msg = 'connection to TimeSync failed at baseurl %s - ' % @baseurl
+      err_msg += 'response status was %s' % e.http_code
+      return Hash[@error => err_msg]
     end
 
     # If TimeSync returns an error, return the error without setting the

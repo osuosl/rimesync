@@ -139,7 +139,10 @@ class MockTimeSync
                           p_dict['display_name']
                         else 'Mr. Example'
                         end,
-      'email' => p_dict.key?('email') ? p_dict['email'] : 'examplej@example.com',
+      'email' => if p_dict.key?('email')
+                   p_dict['email']
+                 else 'examplej@example.com'
+                 end,
       'active' => true,
       'site_admin' => p_dict.key?('site_admin') ? p_dict['site_admin'] : false,
       'site_manager' => if p_dict.key?('site_manager')
@@ -329,17 +332,17 @@ class MockTimeSync
           'display_name' => 'X. Ample User',
           'email' => 'example@example.com',
           'active' => true,
-          'site_admin' => if username == "admin"
+          'site_admin' => if username == 'admin'
                             true
                           else
                             false
                           end,
-          'site_spectator' => if username == "spectator"
+          'site_spectator' => if username == 'spectator'
                                 true
                               else
                                 false
                               end,
-          'site_manager' => if username == "manager"
+          'site_manager' => if username == 'manager'
                               true
                             else
                               false

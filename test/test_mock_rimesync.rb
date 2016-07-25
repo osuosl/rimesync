@@ -5,13 +5,16 @@ require_relative '../lib/rimesync'
 class TestMockRimeSync < Test::Unit::TestCase
   def setup
     baseurl = 'http://ts.example.com/v0'
-    @ts = TimeSync.new(baseurl, token=nil, test = true)
-    @ts.authenticate(username: 'testuser', password: 'testpassword', auth_type: 'password')
+    @ts = TimeSync.new(baseurl, token = nil, test = true)
+    @ts.authenticate(username: 'testuser', password: 'testpassword',
+                     auth_type: 'password')
   end
 
   def test_mock_authenticate
     @ts.instance_variable_set(:@token, nil)
-    assert_equal(@ts.authenticate(username: 'example', password: 'ex', auth_type: 'password'), Hash['token' => 'TESTTOKEN'])
+    assert_equal(@ts.authenticate(username: 'example', password: 'ex',
+                                  auth_type: 'password'),
+                 Hash['token' => 'TESTTOKEN'])
     assert_equal(@ts.instance_variable_get(:@token), 'TESTTOKEN')
   end
 
@@ -445,7 +448,8 @@ class TestMockRimeSync < Test::Unit::TestCase
       ]
     ]
 
-    assert_equal(@ts.get_activities(Hash['slug' => 'docudocs']), expected_result)
+    assert_equal(@ts.get_activities(Hash['slug' => 'docudocs']),
+                 expected_result)
   end
 
   def test_mock_get_activities_no_slug
@@ -575,7 +579,9 @@ class TestMockRimeSync < Test::Unit::TestCase
   end
 
   def test_mock_project_users_no_slug
-    expected_result = Hash[@ts.instance_variable_get(:@error) => 'Missing project slug, please include in method call']
+    expected_result = Hash[@ts.instance_variable_get(:@error) =>
+                           'Missing project slug, please include'\
+                           ' in method call']
     assert_equal(@ts.project_users, expected_result)
   end
 

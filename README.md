@@ -10,6 +10,13 @@ $ cd rimesync
 $ bundle install
 ```
 
+## Build docs
+
+```shell
+$ cd rimesync
+$ rdoc
+```
+
 
 ### Running Tests
 

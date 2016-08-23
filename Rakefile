@@ -8,8 +8,8 @@ task :run do
 end
 
 task :test do
-  ruby "test/tests.rb"
-  ruby "test/test_mock_rimesync.rb"
+  ruby 'test/tests.rb'
+  ruby 'test/test_mock_rimesync.rb'
 end
 
 # rake lint

@@ -122,8 +122,8 @@ class TimeSync
                                                  accept: :json)
       token_response = response_to_ruby(response.body, response.code)
     rescue => e
-      err_msg = 'connection to TimeSync failed at baseurl %s - ' % @baseurl
-      err_msg += 'response status was %s' % e.http_code
+      err_msg = format('connection to TimeSync failed at baseurl %s - ', @baseurl)
+      err_msg += format('response status was %s', e.http_code)
       return Hash[@error => err_msg]
     end
 
@@ -299,7 +299,7 @@ class TimeSync
 
     # Check for key error
     unless query_parameters.nil?
-      for key, value in query_parameters
+      query_parameters.each do |key, _value|
         unless @valid_get_queries.include?(key)
           return [Hash[@error =>
                   format('invalid query: %s', key)]]
@@ -632,7 +632,8 @@ class TimeSync
 
     # Check that a project slug was passed
     unless project
-      return Hash[@error => 'Missing project slug, please include in method call']
+      return Hash[@error =>
+                  'Missing project slug, please include in method call']
     end
 
     # Construct query url
@@ -664,9 +665,9 @@ class TimeSync
 
     rv = Hash[]
 
-    for user, permissions in users
+    users.each do |user, permissions|
       rv_perms = Array[]
-      for perm, value in permissions
+      permissions.each do |perm, value|
         rv_perms.push(perm) if value
       end
       rv[user] = rv_perms
@@ -753,7 +754,7 @@ class TimeSync
     end
 
     # Convert true and false booleans to TimeSync compatible strings
-    for k, v in queries.to_a
+    queries.to_a.each do |k, v|
       queries[k] = v ? 'true' : 'false'
       query_list.push('%s=%s', k, queries[k])
     end
@@ -814,8 +815,8 @@ class TimeSync
       # Sort them into an alphabetized list for easier testing
       # sorted_qs = sorted(queries.to_a, key = operator.itemgetter(0))
       sorted_qs = queries.to_a.sort
-      for query, param in sorted_qs
-        for slug in param
+      sorted_qs.each do |query, param|
+        param.each do |slug|
           # Format each query in the list
           # query_list.push('%s=%s' % Array[query, slug])
           query_list.push(format('%s=%s', query, slug))
@@ -824,7 +825,7 @@ class TimeSync
 
       # Construct the query_string using the list.
       # Last character will be an & so we can push the token
-      for string in query_list
+      query_list.each do |string|
         query_string += format('%s&', string)
       end
     end
@@ -850,7 +851,7 @@ class TimeSync
     # it is no longer missing
     # actual.each do |key, value|
 
-    for key, value in actual
+    actual.each do |key, _value|
       if !@required_params[object_name].include?(key.to_s) && !@optional_params[object_name].include?(key.to_s)
         return format('%s object: invalid field: %s', object_name, key)
       end

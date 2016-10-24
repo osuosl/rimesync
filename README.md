@@ -14,11 +14,21 @@ $ gem install rimesync-0.1.0.gem
 ### Build docs
 
 ```shell
-$ rdoc lib
+$ rake doc
 ```
 
-### Running Tests
+### Running Tests and Linter
 
 ```shell
+$ rake
+```
+
+#### Running Tests Separately
+```shell
 $ rake test
+```
+
+#### Running Rubocop Separately
+```shell
+$ rake rubocop
 ```

@@ -7,7 +7,6 @@ A Ruby Gem equivalent in functionality to [Pymesync](https://github.com/osuosl/p
 ```shell
 $ git clone https://github.com/osuosl/rimesync
 $ cd rimesync
-$ bundle install
 $ gem build rimesync.gemspec
 $ gem install rimesync-0.1.0.gem
 ```

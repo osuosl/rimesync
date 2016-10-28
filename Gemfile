@@ -1,11 +1,10 @@
 source 'https://rubygems.org'
-ruby '2.2.1'
+ruby '2.3.1'
 
-gem 'bcrypt'
-gem 'rest-client', '~> 1.8'
-gem 'test-unit'
-gem 'webmock'
-gem 'rake'
+gem 'bcrypt', '~> 3.1.0'
+gem 'rest-client', '~> 2.0.0'
+gem 'test-unit', '~> 3.2.0'
+gem 'webmock', '~> 2.1.0'
 
-# Tools
-gem 'rubocop', require: false
+gem 'rake', '~> 11.3.0'
+gem 'rubocop', '~> 0.44.0'

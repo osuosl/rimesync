@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary     = 'A ruby Gem to interface with the TimeSync API.'
   s.description = 'A ruby Gem to interface with the TimeSync API.'
 
-  s.required_ruby_version     = '>= 1.9.3'
+  s.required_ruby_version     = '>= 2.2.0'
 
   s.add_dependency 'bcrypt', '= 3.1.11'
   s.add_dependency 'rest-client', '= 1.8.0'

@@ -123,7 +123,7 @@ class TimeSync
       token_response = response_to_ruby(response.body, response.code)
     rescue => e
       err_msg = format('connection to TimeSync failed at baseurl %s - ', @baseurl)
-      err_msg += format('response status was %s', e.http_code)
+      err_msg += format('response status was %s', e.http_code) unless e.is_a? SocketError
       return Hash[@error => err_msg]
     end
 

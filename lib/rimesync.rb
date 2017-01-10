@@ -121,12 +121,9 @@ class TimeSync
       response = RestClient.post(url, auth_hash, content_type: :json,
                                                  accept: :json)
       token_response = response_to_ruby(response.body, response.code)
-    rescue Net::* => e
+    rescue => e
       err_msg = format('connection to TimeSync failed at baseurl %s - ', @baseurl)
-      err_msg += format('response status was %s', e.http_code)
-      return Hash[@error => err_msg]
-    rescue SocketError => e
-      err_msg = format('connection to TimeSync failed at base url %s - Socket Error', @baseurl)
+      err_msg += format('response status was %s', e.http_code) unless e.is_a? SocketError
       return Hash[@error => err_msg]
     end
 

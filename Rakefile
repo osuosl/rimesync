@@ -1,15 +1,14 @@
 require 'rake'
 
-task default: [:run]
-
-task :run do
-  ruby 'lib/rimesync.rb'
-  ruby 'lib/rimesync/mock_rimesync.rb'
-end
+task default: [:test, :rubocop]
 
 task :test do
   ruby 'test/tests.rb'
   ruby 'test/test_mock_rimesync.rb'
+end
+
+task :doc do
+  system 'rdoc lib/'
 end
 
 # rake lint

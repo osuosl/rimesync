@@ -1,4 +1,4 @@
-## rimesync
+# rimesync
 
 A Ruby Gem equivalent in functionality to [Pymesync](https://github.com/osuosl/pymesync).
 
@@ -7,26 +7,28 @@ A Ruby Gem equivalent in functionality to [Pymesync](https://github.com/osuosl/p
 ```shell
 $ git clone https://github.com/osuosl/rimesync
 $ cd rimesync
-$ bundle install
+$ gem build rimesync.gemspec
+$ gem install rimesync-0.1.0.gem
 ```
 
-## Build docs
+### Build docs
 
 ```shell
-$ cd rimesync
-$ rdoc
+$ rake doc
 ```
 
-
-### Running Tests
+### Running Tests and Linter
 
 ```shell
-$ ruby tests.rb
-$ ruby test_mock_rimesync.rb
+$ rake
 ```
 
-#### To run individual test
-
+#### Running Tests Separately
 ```shell
-$ ruby filename.rb -n TestName
+$ rake test
+```
+
+#### Running Rubocop Separately
+```shell
+$ rake rubocop
 ```
